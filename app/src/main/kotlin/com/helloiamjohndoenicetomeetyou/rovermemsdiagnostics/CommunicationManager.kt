@@ -1,0 +1,589 @@
+/*
+ * Copyright (C) 2025 helloiamjohndoenicetomeetyou
+ *
+ * This program is free software: you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
+ * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program. If
+ * not, see <https://www.gnu.org/licenses/>.
+ */
+
+package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
+
+import android.hardware.usb.UsbConstants
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbDeviceConnection
+import android.hardware.usb.UsbEndpoint
+import android.hardware.usb.UsbInterface
+import android.hardware.usb.UsbManager
+import android.hardware.usb.UsbRequest
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.Looper
+import android.os.Message
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.TuningButtonId
+
+class CommunicationManager(
+    private val mMainActivity: MainActivity,
+    private val mUsbManager: UsbManager
+) {
+    companion object {
+        enum class MessageId {
+            CONNECT,
+            DISCONNECT,
+            CLEAR_FAULT_CODES,
+            PERFORM_TUNING
+        }
+
+        // private const val LIB_USB_ENDPOINT_IN: Int = 0x80
+
+        private const val LIB_USB_ENDPOINT_OUT: Int = 0x00
+
+        private const val LIB_USB_RECIPIENT_DEVICE: Int = 0x00
+
+        private const val FTDI_SIO_REQUEST_RESET = 0
+
+        private const val FTDI_SIO_REQUEST_SET_BAUD_RATE = 3
+
+        private const val FTDI_SIO_REQUEST_SET_DATA = 4
+
+        private const val FTDI_SIO_RESET_SIO = 0
+
+        private const val FTDI_SIO_RESET_PURGE_RX = 1
+
+        private const val FTDI_SIO_RESET_PURGE_TX = 2
+
+        // private const val FTDI_SIO_SET_BREAK_ON = 1 shl 14
+
+        // private const val FTDI_SIO_SET_BREAK_OFF = 0 shl 14
+
+        /*
+        private const val REQUEST_TYPE_IN: Int =
+            UsbConstants.USB_TYPE_VENDOR or
+                    LIB_USB_RECIPIENT_DEVICE or
+                    LIB_USB_ENDPOINT_IN
+         */
+
+        private const val REQUEST_TYPE_OUT: Int =
+            UsbConstants.USB_TYPE_VENDOR or LIB_USB_RECIPIENT_DEVICE or LIB_USB_ENDPOINT_OUT
+
+        private const val INDEX = 0
+
+        private const val TIMEOUT_CONTROL = 5000
+
+        private const val TIMEOUT_DATA = 100
+
+        private const val TIMEOUT_ECU_RESPONSE = 1000
+
+        private const val BAUD_RATE_16 = 16696 // 9600
+
+        private const val DATA_BITS = 8
+
+        private const val PARITY_NONE: Int = 0x00
+
+        private const val STOP_BITS: Int = 0x00
+
+        private const val SIZE_BUFFER = 4096
+
+        private const val SIZE_HEADER = 2
+
+        private val COMMAND_INITIALIZE_ECU_16 =
+            byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
+
+        private val COMMAND_NOP = byteArrayOf(0xF4.toByte())
+
+        private val COMMAND_REQUEST_DATA_16_7D = byteArrayOf(0x7D.toByte())
+
+        private val COMMAND_REQUEST_DATA_16_80 = byteArrayOf(0x80.toByte())
+
+        private val COMMAND_CLEAR_FAULT_CODES = byteArrayOf(0xCC.toByte())
+
+        private val COMMAND_INCREMENT_IGNITION_TIMING = byteArrayOf(0x93.toByte())
+
+        private val COMMAND_DECREMENT_IGNITION_TIMING = byteArrayOf(0x94.toByte())
+
+        private val COMMAND_INCREMENT_IDLE_SPEED = byteArrayOf(0x91.toByte())
+
+        private val COMMAND_DECREMENT_IDLE_SPEED = byteArrayOf(0x92.toByte())
+
+        private val COMMAND_INCREMENT_IDLE_DECAY = byteArrayOf(0x89.toByte())
+
+        private val COMMAND_DECREMENT_IDLE_DECAY = byteArrayOf(0x8A.toByte())
+
+        private val COMMAND_INCREMENT_FUEL_TRIM = byteArrayOf(0x79.toByte())
+
+        private val COMMAND_DECREMENT_FUEL_TRIM = byteArrayOf(0x7A.toByte())
+
+        private val COMMAND_RESET_TUNING = byteArrayOf(0xFA.toByte())
+
+        private const val DELAY_REQUEST_DATA = 500L
+
+        private val TAG = CommunicationManager::class.java.simpleName
+    }
+
+    var mIsConnected = false
+
+    private lateinit var mInEndpoint: UsbEndpoint
+
+    private lateinit var mOutEndpoint: UsbEndpoint
+
+    private lateinit var mTuningButtonId: TuningButtonId
+
+    private var mHandler: ConnectionManagerHandler
+
+    private var mUsbInterface: UsbInterface? = null
+
+    private var mDevice: UsbDevice? = null
+
+    private var mConnection: UsbDeviceConnection? = null
+
+    private var mRequest: UsbRequest? = null
+
+    private val mConnectRunnable = Runnable {
+        connect()
+    }
+
+    private val mConnect16Runnable = Runnable {
+        connect16()
+    }
+
+    private val mDisconnectRunnable = Runnable {
+        disconnect()
+    }
+
+    private val mClearFaultCodesRunnable = Runnable {
+        clearFaultCodes()
+    }
+
+    private val mTuningRunnable = Runnable {
+        tune()
+    }
+
+    private val mRequestData16Runnable = object : Runnable {
+        override fun run() {
+            requestData16()
+            if (mIsConnected) {
+                mHandler.postDelayed(this, DELAY_REQUEST_DATA)
+            }
+        }
+    }
+
+    init {
+        HandlerThread(TAG).run {
+            start()
+            mHandler = ConnectionManagerHandler(looper)
+        }
+    }
+
+    fun postMessage(what: Int = -1, arg1: Int = 0, arg2: Int = 0, obj: Any? = null) {
+        mHandler.obtainMessage(what, arg1, arg2, obj).sendToTarget()
+    }
+
+    private fun connect() {
+        logUi("Start connecting.")
+
+        mDevice ?: run {
+            logUi("Connecting failed due to null device.")
+            disconnected()
+            return
+        }
+
+        mConnection = mUsbManager.openDevice(mDevice)
+        mConnection ?: run {
+            logUi("Failed to open the device.")
+            disconnected()
+            return
+        }
+        logUi("Opening the device succeeded.")
+
+        if (!getEndpoints(mDevice!!)) {
+            disconnected()
+            return
+        }
+
+        if (!reset()) {
+            disconnected()
+            return
+        }
+
+        mRequest = UsbRequest()
+        mRequest?.initialize(mConnection, mInEndpoint)
+
+        if (!setParameters()) {
+            disconnected()
+            return
+        }
+
+        if (!purgeBuffers()) {
+            disconnected()
+            return
+        }
+
+        mHandler.post(mConnect16Runnable)
+    }
+
+    private fun disconnect() {
+        mConnection?.let { connection ->
+            mUsbInterface?.let { usbInterface ->
+                connection.releaseInterface(usbInterface)
+                connection.close()
+                mConnection = null
+                mUsbInterface = null
+            }
+        }
+
+        disconnected()
+    }
+
+    private fun getEndpoints(device: UsbDevice): Boolean {
+        mUsbInterface = device.getInterface(0)
+        mUsbInterface ?: run {
+            return false
+        }
+
+        val forceClaim = true
+        val result: Boolean = mConnection?.claimInterface(mUsbInterface, forceClaim) ?: run {
+            logUi("Claiming the USB interface failed due to null connection.")
+            return false
+        }
+        if (!result) {
+            logUi("Failed to claim the interface.")
+            return false
+        }
+
+        mUsbInterface!!.endpointCount.let { count ->
+            if (count < 2) {
+                logUi("Insufficient endpoint count: $count")
+                return false
+            }
+        }
+
+        mInEndpoint = mUsbInterface!!.getEndpoint(0) ?: run {
+            logUi("Failed to get the in endpoint.")
+            return false
+        }
+
+        mOutEndpoint = mUsbInterface!!.getEndpoint(1) ?: run {
+            logUi("Failed to get the out endpoint.")
+            return false
+        }
+
+        logUi("Getting endpoints succeeded.")
+
+        return true
+    }
+
+    private fun reset(): Boolean {
+        val result: Int? = mConnection?.controlTransfer(
+            REQUEST_TYPE_OUT,
+            FTDI_SIO_REQUEST_RESET,
+            FTDI_SIO_RESET_SIO,
+            INDEX,
+            null,
+            0,
+            TIMEOUT_CONTROL
+        )
+        return when (result) {
+            0 -> {
+                logUi("Resetting succeeded.")
+                true
+            }
+            null -> {
+                logUi("Resetting failed due to null connection.")
+                false
+            }
+            else -> {
+                logUi("Failed to reset.")
+                false
+            }
+        }
+    }
+
+    private fun setParameters(): Boolean {
+        val baudRate = BAUD_RATE_16
+        var result: Int? = mConnection?.controlTransfer(
+            REQUEST_TYPE_OUT,
+            FTDI_SIO_REQUEST_SET_BAUD_RATE,
+            baudRate,
+            INDEX,
+            null,
+            0,
+            TIMEOUT_CONTROL
+        )
+        when (result) {
+            0 -> {
+                // Nothing to do.
+            }
+            null -> {
+                logUi("Setting baud rate failed due to null connection.")
+                return false
+            }
+            else -> {
+                logUi("Failed to set baud rate.")
+                return false
+            }
+        }
+
+        result = mConnection?.controlTransfer(
+            REQUEST_TYPE_OUT,
+            FTDI_SIO_REQUEST_SET_DATA,
+            (((0 or DATA_BITS) or (PARITY_NONE shl 8)) or (STOP_BITS shl 11)),
+            0,
+            null,
+            0,
+            TIMEOUT_CONTROL
+        )
+        return when (result) {
+            0 -> {
+                logUi("Setting parameters succeeded.")
+                true
+            }
+            null -> {
+                logUi("Setting parameters failed due to null connection.")
+                false
+            }
+            else -> {
+                logUi("Failed to set parameters.")
+                false
+            }
+        }
+    }
+
+    private fun purgeBuffers(): Boolean {
+        var result: Int? = mConnection?.controlTransfer(
+            REQUEST_TYPE_OUT,
+            FTDI_SIO_REQUEST_RESET,
+            FTDI_SIO_RESET_PURGE_RX,
+            INDEX,
+            null,
+            0,
+            TIMEOUT_CONTROL
+        )
+        if (null == result) {
+            logUi("Purging the write buffer failed due to null connection.")
+            return false
+        } else if (result < 0) {
+            logUi("Failed to purge the write buffer.")
+            return false
+        }
+
+        result = mConnection?.controlTransfer(
+            REQUEST_TYPE_OUT,
+            FTDI_SIO_REQUEST_RESET,
+            FTDI_SIO_RESET_PURGE_TX,
+            INDEX,
+            null,
+            0,
+            TIMEOUT_CONTROL
+        )
+        return if (null == result) {
+            logUi("Purging the read buffer failed due to null connection.")
+            false
+        } else if (result < 0) {
+            logUi("Failed to purge the read buffer.")
+            false
+        } else {
+            logUi("Purging buffers succeeded.")
+            true
+        }
+    }
+
+    private fun connect16() {
+        val readBuffer = ByteArray(SIZE_BUFFER)
+
+        if (!sendCommand(COMMAND_INITIALIZE_ECU_16, readBuffer)) {
+            return
+        }
+
+        for (i in readBuffer.indices) {
+            readBuffer[i] = 0
+        }
+
+        if (!sendCommand(COMMAND_NOP, readBuffer)) {
+            return
+        }
+
+        connected()
+    }
+
+    private fun requestData16() {
+        val buffer80 = ByteArray(SIZE_BUFFER)
+        if (!sendCommand(COMMAND_REQUEST_DATA_16_80, buffer80)) {
+            return
+        }
+
+        val buffer7D = ByteArray(SIZE_BUFFER)
+        if (!sendCommand(COMMAND_REQUEST_DATA_16_7D, buffer7D)) {
+            return
+        }
+
+        mMainActivity.postMessage(
+            what = MainActivity.Companion.MessageId.LIVE_DATA.ordinal,
+            obj = DataPacket(buffer80, buffer7D)
+        )
+    }
+
+    private fun clearFaultCodes() {
+        val readBuffer = ByteArray(SIZE_BUFFER)
+        if (!sendCommand(COMMAND_CLEAR_FAULT_CODES, readBuffer)) {
+            return
+        }
+        mMainActivity.postMessage(MainActivity.Companion.MessageId.FAULT_CODES.ordinal)
+    }
+
+    private fun tune() {
+        val command = when (mTuningButtonId) {
+
+            // Ignition Timing
+            TuningButtonId.INCREMENT_IGNITION_TIMING -> COMMAND_INCREMENT_IGNITION_TIMING
+            TuningButtonId.DECREMENT_IGNITION_TIMING -> COMMAND_DECREMENT_IGNITION_TIMING
+
+            // Idle Speed
+            TuningButtonId.INCREMENT_IDLE_SPEED -> COMMAND_INCREMENT_IDLE_SPEED
+            TuningButtonId.DECREMENT_IDLE_SPEED -> COMMAND_DECREMENT_IDLE_SPEED
+
+            // Idle Decay
+            TuningButtonId.INCREMENT_IDLE_DECAY -> COMMAND_INCREMENT_IDLE_DECAY
+            TuningButtonId.DECREMENT_IDLE_DECAY -> COMMAND_DECREMENT_IDLE_DECAY
+
+            // Fuel Trim
+            TuningButtonId.INCREMENT_FUEL_TRIM -> COMMAND_INCREMENT_FUEL_TRIM
+            TuningButtonId.DECREMENT_FUEL_TRIM -> COMMAND_DECREMENT_FUEL_TRIM
+
+            // Reset
+            TuningButtonId.RESET_TUNING -> COMMAND_RESET_TUNING
+        }
+
+        val readBuffer = ByteArray(SIZE_BUFFER)
+
+        if (!sendCommand(command, readBuffer)) {
+            return
+        }
+
+        mMainActivity.postMessage(
+            what = MainActivity.Companion.MessageId.TUNING.ordinal,
+            obj = Pair(mTuningButtonId, readBuffer[2].toHexStringRmd())
+        )
+    }
+
+    private fun sendCommand(command: ByteArray, readBuffer: ByteArray): Boolean {
+        command.forEach { byte ->
+            if (!write(byteArrayOf(byte))) {
+                return false
+            }
+            if (!read(readBuffer)) {
+                return false
+            }
+        }
+
+        return true
+    }
+
+    private fun read(readBytes: ByteArray): Boolean {
+        var size: Int
+        var cursor = 0
+
+        val startTime = System.currentTimeMillis()
+
+        do {
+            val buffer = ByteArray(SIZE_BUFFER)
+            size = mConnection?.bulkTransfer(
+                mInEndpoint,
+                buffer,
+                buffer.size,
+                TIMEOUT_DATA
+            ) ?: -1
+
+            if (size <= 0) {
+                logUi("Failed to receive response of the command.")
+                postMessage(MessageId.DISCONNECT.ordinal)
+                return false
+            }
+
+            if (SIZE_HEADER == size && cursor != 0) {
+                break
+            }
+
+            for (i in SIZE_HEADER until size) {
+                readBytes[++cursor] = buffer[i]
+            }
+
+            if (TIMEOUT_ECU_RESPONSE < (System.currentTimeMillis() - startTime)) {
+                postMessage(MessageId.DISCONNECT.ordinal)
+                return false
+            }
+        } while (true)
+
+        // The first byte is total read size.
+        readBytes[0] = cursor.toByte()
+
+        val sb = StringBuffer()
+        sb.append("READ: \n")
+        for (i in 0..cursor) {
+            sb.append(readBytes[i].toHexStringRmd() + " ")
+        }
+        logUi(sb.toString())
+
+        return true
+    }
+
+    private fun write(writeBytes: ByteArray): Boolean {
+        val size: Int = mConnection?.bulkTransfer(
+            mOutEndpoint,
+            writeBytes,
+            writeBytes.size,
+            TIMEOUT_DATA
+        ) ?: -1
+        if (size < 0) {
+            logUi("Failed to send a command.")
+            disconnect()
+            return false
+        }
+        return true
+    }
+
+    private fun connected() {
+        mIsConnected = true
+        mMainActivity.postMessage(MainActivity.Companion.MessageId.CONNECTED.ordinal)
+        mHandler.post(mRequestData16Runnable)
+    }
+
+    private fun disconnected() {
+        mIsConnected = false
+        mMainActivity.postMessage(MainActivity.Companion.MessageId.DISCONNECTED.ordinal)
+    }
+
+    private fun logUi(message: String) {
+        mMainActivity.postMessage(MainActivity.Companion.MessageId.HOME.ordinal, obj = message)
+    }
+
+    private inner class ConnectionManagerHandler(looper: Looper) : Handler(looper) {
+        override fun handleMessage(message: Message) {
+            when (message.what) {
+                MessageId.CONNECT.ordinal -> {
+                    mDevice = message.obj as UsbDevice?
+                    mHandler.post(mConnectRunnable)
+                }
+
+                MessageId.DISCONNECT.ordinal -> {
+                    mHandler.removeCallbacksAndMessages(null)
+                    mHandler.post(mDisconnectRunnable)
+                }
+
+                MessageId.CLEAR_FAULT_CODES.ordinal -> {
+                    mHandler.post(mClearFaultCodesRunnable)
+                }
+
+                MessageId.PERFORM_TUNING.ordinal -> {
+                    mTuningButtonId = message.obj as TuningButtonId
+                    mHandler.post(mTuningRunnable)
+                }
+            }
+        }
+    }
+}

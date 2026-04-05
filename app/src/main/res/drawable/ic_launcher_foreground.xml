@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright (C) 2025 helloiamjohndoenicetomeetyou
+
+    This program is free software: you can redistribute it and/or modify it under the terms of the
+    GNU General Public License as published by the Free Software Foundation, either version 3 of the
+    License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+    without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See
+    the GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License along with this program. If
+    not, see <https://www.gnu.org/licenses/>.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:tint="#FFFFFF"
+    android:viewportWidth="560.86957"
+    android:viewportHeight="560.86957">
+    <group
+        android:translateX="151.43478"
+        android:translateY="182.37074">
+        <group android:translateY="153.93605">
+            <path
+                android:fillColor="#000000"
+                android:pathData="M13.6875,-0L13.6875,-103L37.734375,-103Q73.875,-103,73.875,-74.03125Q73.875,-65.921875,71.28125,-60.34375Q68.6875,-54.765625,64.296875,-51.21875Q59.90625,-47.671875,54.4375,-45.640625L81.9375,-0L67.53125,-0L42.765625,-42L26.640625,-42L26.640625,-0L13.6875,-0ZM26.640625,-53L37.296875,-53Q49.96875,-53,55.226562,-58.054688Q60.484375,-63.109375,60.484375,-72.9375Q60.484375,-83.203125,54.867188,-87.60156Q49.25,-92,37.015625,-92L26.640625,-92L26.640625,-53Z" />
+            <path
+                android:fillColor="#000000"
+                android:pathData="M93.203125,0L93.203125,-103L111.78125,-103L128.90625,-42.34375L129.34375,-42.34375L146.48438,-103L165.20312,-103L165.20312,0L152.95312,0L152.95312,-55.328125Q152.95312,-63.75,153.32031,-72.6875Q153.6875,-81.625,154.6875,-89.203125L154.10938,-89.203125L135.10938,-25.671875L123.15625,-25.671875L104,-89.34375L103.421875,-89.34375Q104.140625,-85.203125,104.578125,-79.265625Q105.015625,-73.328125,105.22656,-67.03906Q105.4375,-60.75,105.4375,-55.328125L105.4375,0L93.203125,0Z" />
+            <path
+                android:fillColor="#000000"
+                android:pathData="M182.07812,0L182.07812,-103L206.98438,-103Q220.67188,-103,230.75,-97.22656Q240.82812,-91.453125,246.375,-80.203125Q251.92188,-68.953125,251.92188,-52.515625Q251.92188,-26.40625,239.32031,-13.203125Q226.71875,0,204.10938,0L182.07812,0ZM195.04688,-11L202.8125,-11Q221.25,-11,229.96094,-21.453125Q238.67188,-31.90625,238.67188,-52.078125Q238.67188,-72.6875,229.8125,-82.34375Q220.95312,-92,205.54688,-92L195.04688,-92L195.04688,-11Z" />
+        </group>
+    </group>
+</vector>
