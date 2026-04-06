@@ -62,6 +62,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.FaultCodesSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataExperimentalSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.SectionTitle
@@ -248,100 +250,6 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
             onDismissRequest = {
                 showAboutDialog.value = false
             }
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ClearFaultCodesDialog(viewModel: RmdAppViewModel, onDismissRequest: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    viewModel.requestClearFaultCodes()
-                    onDismissRequest()
-                }
-            ) {
-                Text("Yes")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("No")
-            }
-        },
-        title = {
-            Text(text = "Clear Fault Codes")
-        },
-        text = {
-            Text(text = "Are you sure you want to clear fault codes?")
-        }
-    )
-}
-
-@Composable
-fun FaultCodesSection(uiState: RmdAppState, isConnected: Boolean, onShowDialog: () -> Unit) {
-    val faultCodeList = listOf(
-        FaultCodeModel(
-            label = "Crankshaft Angle Sensor",
-            value = uiState.crankshaftAngleSensorFault
-        ),
-        FaultCodeModel(
-            label = "Throttle Potentiometer Circuit",
-            value = uiState.throttlePotentiometerFault
-        ),
-        FaultCodeModel(
-            label = "Manifold Absolute Pressure Sensor",
-            value = uiState.manifoldAbsolutePressureSensorFault
-        ),
-        FaultCodeModel(
-            label = "Water Temperature Sensor",
-            value = uiState.waterTemperatureSensorFault
-        ),
-        FaultCodeModel(
-            label = "Intake Air Temperature Sensor",
-            value = uiState.intakeAirTemperatureSensorFault
-        )
-    )
-
-    faultCodeList.forEach { faultCode ->
-        Row(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = faultCode.label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = faultCode.value,
-                textAlign = TextAlign.End,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-    }
-
-    // Clear Fault Codes Button
-    FilledTonalButton(
-        onClick = onShowDialog,
-        modifier = Modifier.padding(top = 16.dp),
-        enabled = isConnected
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.ic_button_clear),
-            contentDescription = null
-        )
-
-        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-
-        Text(
-            text = "Clear",
-            style = MaterialTheme.typography.titleMedium
         )
     }
 }
@@ -708,8 +616,6 @@ class RmdAppViewModel : ViewModel() {
         }
     }
 }
-
-data class FaultCodeModel(val label: String, val value: String)
 
 data class TuningModel(
     val label: String,
