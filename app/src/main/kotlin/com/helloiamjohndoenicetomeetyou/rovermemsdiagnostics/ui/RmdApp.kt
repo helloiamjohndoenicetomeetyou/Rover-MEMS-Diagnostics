@@ -47,12 +47,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.FaultCodesSection
@@ -60,14 +57,7 @@ import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDat
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ResetTuningDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.SectionTitle
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningSection
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -308,128 +298,4 @@ fun NotSupportedDialog(onConfirm: () -> Unit) {
             Text(text = "Your device does not support USB Host Mode, which is required for this application.")
         }
     )
-}
-
-class RmdAppViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(RmdAppState())
-
-    val uiState: StateFlow<RmdAppState> = _uiState.asStateFlow()
-
-    private val _uiEvent = Channel<String>()
-
-    val uiEvent = _uiEvent.receiveAsFlow()
-
-    private val _isConnected = MutableStateFlow(false)
-
-    val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
-
-    fun setIsConnected(isConnected: Boolean) {
-        _isConnected.value = isConnected
-    }
-
-    var onConnectRequested: (() -> Unit)? = null
-
-    fun requestConnect() {
-        onConnectRequested?.invoke()
-    }
-
-    var onDisconnectRequested: (() -> Unit)? = null
-
-    fun requestDisconnect() {
-        onDisconnectRequested?.invoke()
-    }
-
-    var onClearFaultCodesRequested: (() -> Unit)? = null
-
-    fun requestClearFaultCodes() {
-        onClearFaultCodesRequested?.invoke()
-    }
-
-    /**
-     * Called when LiveData and FaultCodes are received.
-     */
-    fun onLiveDataReceived(data: DataPacket) {
-        _uiState.update {
-            it.copy(
-                engineSpeed = data.engineSpeed,
-                idleSpeedDeviation = data.idleSpeedDeviation,
-                idleSwitch = data.idleSwitch,
-                throttlePotentiometerVoltage = data.throttlePotentiometerVoltage,
-                idleAirControlMotorPosition = data.idleAirControlMotorPosition,
-                manifoldAbsolutePressure = data.manifoldAbsolutePressure,
-                batteryVoltage = data.batteryVoltage,
-                waterTemperature = data.waterTemperature,
-                intakeAirTemperature = data.intakeAirTemperature,
-                neutralSwitch = data.neutralSwitch,
-                oxygenSensorVoltage = data.oxygenSensorVoltage,
-                fuelTrimLoopOperation = data.fuelTrimLoopOperation,
-                shortTermFuelTrim = data.shortTermFuelTrim,
-
-                coolerSwitch = data.coolerSwitch,
-                idleSetPoint = data.idleSetPoint,
-                hotIdlePosition = data.hotIdlePosition,
-                idleBasePosition = data.idleBasePosition,
-                ignitionTimingOffset = data.ignitionTimingOffset,
-                ignitionTiming = data.ignitionTiming,
-                ignitionCoilDwellTime = data.ignitionCoilDwellTime,
-
-                crankshaftAngleSensorFault = data.crankshaftAngleSensorFault,
-                throttlePotentiometerFault = data.throttlePotentiometerFault,
-                manifoldAbsolutePressureSensorFault = data.manifoldAbsolutePressureSensorFault,
-                waterTemperatureSensorFault = data.waterTemperatureSensorFault,
-                intakeAirTemperatureSensorFault = data.intakeAirTemperatureSensorFault
-            )
-        }
-    }
-
-    var onPerformTuningRequested: ((TuningButtonId) -> Unit)? = null
-
-    fun performTuning(buttonId: TuningButtonId) {
-        onPerformTuningRequested?.invoke(buttonId)
-    }
-
-    /**
-     * Called when the tuning value is changed.
-     * @param buttonId The ID of the Button that was clicked.
-     * @param value The new value of the Tuning.
-     */
-    fun onTuningValueChanged(buttonId: TuningButtonId, value: String) {
-        _uiState.update {
-            when (buttonId) {
-                TuningButtonId.INCREMENT_IGNITION_TIMING,
-                TuningButtonId.DECREMENT_IGNITION_TIMING ->
-                    it.copy(tuningIgnitionTiming = value)
-
-                TuningButtonId.INCREMENT_IDLE_SPEED,
-                TuningButtonId.DECREMENT_IDLE_SPEED ->
-                    it.copy(tuningIdleSpeed = value)
-
-                TuningButtonId.INCREMENT_IDLE_DECAY,
-                TuningButtonId.DECREMENT_IDLE_DECAY ->
-                    it.copy(tuningIdleDecay = value)
-
-                TuningButtonId.INCREMENT_FUEL_TRIM,
-                TuningButtonId.DECREMENT_FUEL_TRIM ->
-                    it.copy(tuningFuelTrim = value)
-
-                TuningButtonId.RESET_TUNING ->
-                    it.copy(
-                        tuningIgnitionTiming = "-",
-                        tuningIdleSpeed = "-",
-                        tuningIdleDecay = "-",
-                        tuningFuelTrim = "-"
-                    )
-            }
-        }
-
-        if (buttonId == TuningButtonId.RESET_TUNING) {
-            showSnackbar("Resetting tuning successfully completed.")
-        }
-    }
-
-    fun showSnackbar(message: String) {
-        viewModelScope.launch {
-            _uiEvent.send(message)
-        }
-    }
 }
