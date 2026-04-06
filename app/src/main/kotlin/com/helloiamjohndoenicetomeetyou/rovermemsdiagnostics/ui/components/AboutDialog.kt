@@ -34,7 +34,7 @@ fun AboutDialog(onDismissRequest: () -> Unit) {
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(onClick = onDismissRequest) {
-                Text("Close")
+                Text(text = "Close")
             }
         },
         title = {
@@ -59,7 +59,7 @@ fun AboutDialog(onDismissRequest: () -> Unit) {
                                 url = "https://helloiamjohndoenicetomeetyou.github.io/Rover-MEMS-Diagnostics/"
                             )
                         ) {
-                            append("More Information (GitHub)")
+                            append(text = "More Information (GitHub)")
                         }
                     },
                     style = MaterialTheme.typography.titleMedium

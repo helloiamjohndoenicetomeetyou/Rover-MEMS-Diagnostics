@@ -34,9 +34,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.core.content.ContextCompat
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.NotSupportedDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.NotSupportedDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import java.lang.ref.WeakReference
 

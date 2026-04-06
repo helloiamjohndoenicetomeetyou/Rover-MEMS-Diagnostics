@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +30,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -234,24 +232,4 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
             }
         )
     }
-}
-
-@Composable
-fun NotSupportedDialog(onConfirm: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = {
-            // Nothing To Do.
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("OK")
-            }
-        },
-        title = {
-            Text(text = "Not Supported")
-        },
-        text = {
-            Text(text = "Your device does not support USB Host Mode, which is required for this application.")
-        }
-    )
 }
