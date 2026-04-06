@@ -310,41 +310,6 @@ fun NotSupportedDialog(onConfirm: () -> Unit) {
     )
 }
 
-data class RmdAppState(
-    val engineSpeed: String = "-",
-    val idleSpeedDeviation: String = "-",
-    val idleSwitch: String = "-",
-    val throttlePotentiometerVoltage: String = "-",
-    val idleAirControlMotorPosition: String = "-",
-    val manifoldAbsolutePressure: String = "-",
-    val batteryVoltage: String = "-",
-    val waterTemperature: String = "-",
-    val intakeAirTemperature: String = "-",
-    val neutralSwitch: String = "-",
-    val oxygenSensorVoltage: String = "-",
-    val fuelTrimLoopOperation: String = "-",
-    val shortTermFuelTrim: String = "-",
-
-    val crankshaftAngleSensorFault: String = "-",
-    val throttlePotentiometerFault: String = "-",
-    val manifoldAbsolutePressureSensorFault: String = "-",
-    val waterTemperatureSensorFault: String = "-",
-    val intakeAirTemperatureSensorFault: String = "-",
-
-    val coolerSwitch: String = "-",
-    val idleSetPoint: String = "-",
-    val hotIdlePosition: String = "-",
-    val idleBasePosition: String = "-",
-    val ignitionTimingOffset: String = "-",
-    val ignitionTiming: String = "-",
-    val ignitionCoilDwellTime: String = "-",
-
-    val tuningIgnitionTiming: String = "-",
-    val tuningIdleSpeed: String = "-",
-    val tuningIdleDecay: String = "-",
-    val tuningFuelTrim: String = "-"
-)
-
 class RmdAppViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(RmdAppState())
 
