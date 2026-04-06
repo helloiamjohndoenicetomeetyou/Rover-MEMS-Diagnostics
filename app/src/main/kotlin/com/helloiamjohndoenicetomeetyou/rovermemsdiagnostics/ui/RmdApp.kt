@@ -209,7 +209,9 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
 
     if (showClearFaultCodesDialog.value) {
         ClearFaultCodesDialog(
-            viewModel = viewModel,
+            onConfirm = {
+                viewModel.requestClearFaultCodes()
+            },
             onDismissRequest = {
                 showClearFaultCodesDialog.value = false
             }

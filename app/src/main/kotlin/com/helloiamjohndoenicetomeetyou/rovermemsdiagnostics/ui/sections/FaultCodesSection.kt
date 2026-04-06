@@ -35,17 +35,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppState
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClearFaultCodesDialog(viewModel: RmdAppViewModel, onDismissRequest: () -> Unit) {
+fun ClearFaultCodesDialog(onConfirm: () -> Unit, onDismissRequest: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             TextButton(
                 onClick = {
-                    viewModel.requestClearFaultCodes()
+                    onConfirm()
                     onDismissRequest()
                 }
             ) {
