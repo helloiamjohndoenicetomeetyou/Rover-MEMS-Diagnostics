@@ -37,7 +37,7 @@ import androidx.core.content.ContextCompat
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.NotSupportedDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.TuningButtonId
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import java.lang.ref.WeakReference
 
 class MainActivity : ComponentActivity() {
