@@ -16,7 +16,6 @@
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -64,6 +62,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataExperimentalSection
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.SectionTitle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -249,195 +249,6 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
                 showAboutDialog.value = false
             }
         )
-    }
-}
-
-@Composable
-fun LiveDataItem(label: String, value: String) {
-    Column(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.End
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.displayMedium
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium
-        )
-    }
-}
-
-@Composable
-fun LiveDataItem2(label: String, value: String, subLabel: String, subValue: String) {
-    Column(
-        modifier = Modifier
-            .padding(top = 16.dp)
-            .fillMaxWidth(),
-        horizontalAlignment = Alignment.End
-    ) {
-        Text(
-            text = value,
-            style = MaterialTheme.typography.displayMedium
-        )
-        Row {
-            Text(
-                text = subLabel,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = subValue,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.titleMedium
-        )
-    }
-}
-
-@Composable
-fun LiveDataSection(uiState: RmdAppState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Box(modifier = Modifier.weight(1f)) {
-            LiveDataItem2(
-                label = "Engine Speed - RPM",
-                value = uiState.engineSpeed,
-                subLabel = "\u00B1",
-                subValue = uiState.idleSpeedDeviation
-            )
-        }
-
-        Box(modifier = Modifier.weight(1f)) {
-            LiveDataItem2(
-                label = "Idle Switch",
-                value = uiState.idleSwitch,
-                subLabel = "",
-                subValue = ""
-            )
-        }
-    }
-
-    val livedataList = listOf(
-        LiveDataModel(
-            label = "Throttle - V",
-            value = uiState.throttlePotentiometerVoltage
-        ),
-        LiveDataModel(
-            label = "IAC (Step)",
-            value = uiState.idleAirControlMotorPosition
-        ),
-        LiveDataModel(
-            label = "MAP - kPa",
-            value = uiState.manifoldAbsolutePressure
-        ),
-        LiveDataModel(
-            label = "Battery - V",
-            value = uiState.batteryVoltage
-        ),
-        LiveDataModel(
-            label = "Water - \u00B0C",
-            value = uiState.waterTemperature
-        ),
-        LiveDataModel(
-            label = "Air - \u00B0C",
-            value = uiState.intakeAirTemperature
-        ),
-        LiveDataModel(
-            label = "Neutral Switch (AT)",
-            value = uiState.neutralSwitch
-        ),
-        LiveDataModel(
-            label = "Lambda (O2) - mV",
-            value = uiState.oxygenSensorVoltage
-        ),
-        LiveDataModel(
-            label = "FT Loop",
-            value = uiState.fuelTrimLoopOperation
-        ),
-        LiveDataModel(
-            label = "Short FT - %",
-            value = uiState.shortTermFuelTrim
-        )
-    )
-
-    val rows = livedataList.chunked(2)
-
-    rows.forEach { row ->
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            row.forEach { liveData ->
-                Box(modifier = Modifier.weight(1f)) {
-                    LiveDataItem(
-                        label = liveData.label,
-                        value = liveData.value
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun LiveDataExperimentalSection(uiState: RmdAppState) {
-    val list = listOf(
-        LiveDataModel(
-            label = "Cooler Switch",
-            value = uiState.coolerSwitch
-        ),
-        LiveDataModel(
-            label = "Idle Set Point",
-            value = uiState.idleSetPoint
-        ),
-        LiveDataModel(
-            label = "Hot Idle Position",
-            value = uiState.hotIdlePosition
-        ),
-        LiveDataModel(
-            label = "Idle Base Position",
-            value = uiState.idleBasePosition
-        ),
-        LiveDataModel(
-            label = "Ignition Timing Offset",
-            value = uiState.ignitionTimingOffset
-        ),
-        LiveDataModel(
-            label = "Ignition Timing",
-            value = uiState.ignitionTiming
-        ),
-        LiveDataModel(
-            label = "Ignition Coil Dwell Time - ms",
-            value = uiState.ignitionCoilDwellTime
-        )
-    )
-
-    list.forEach { data ->
-        Row(
-            modifier = Modifier
-                .padding(top = 16.dp)
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = data.label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Text(
-                text = data.value,
-                textAlign = TextAlign.End,
-                style = MaterialTheme.typography.titleMedium
-            )
-        }
     }
 }
 
@@ -897,8 +708,6 @@ class RmdAppViewModel : ViewModel() {
         }
     }
 }
-
-data class LiveDataModel(val label: String, val value: String)
 
 data class FaultCodeModel(val label: String, val value: String)
 
