@@ -42,15 +42,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.AboutDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.FaultCodesSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataExperimentalSection
@@ -237,47 +234,6 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
             }
         )
     }
-}
-
-@Composable
-fun AboutDialog(onDismissRequest: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = {
-            TextButton(onClick = onDismissRequest) {
-                Text("Close")
-            }
-        },
-        title = {
-            Text(text = "About")
-        },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.app_name) + "\n" +
-                            "\n" +
-                            "Supported ECU Version:\n" +
-                            "MEMS 1.6\n" +
-                            "\n" +
-                            "Application Version:\n" +
-                            "${BuildConfig.VERSION_NAME}\n",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = buildAnnotatedString {
-                        withLink(
-                            LinkAnnotation.Url(
-                                url = "https://helloiamjohndoenicetomeetyou.github.io/Rover-MEMS-Diagnostics/"
-                            )
-                        ) {
-                            append("More Information (GitHub)")
-                        }
-                    },
-                    style = MaterialTheme.typography.titleMedium
-                )
-            }
-        }
-    )
 }
 
 @Composable
