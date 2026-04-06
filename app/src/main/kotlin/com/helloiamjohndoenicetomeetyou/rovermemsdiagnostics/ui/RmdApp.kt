@@ -15,7 +15,6 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,14 +44,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
@@ -68,6 +64,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.SectionTitle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -251,35 +248,6 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
             onDismissRequest = {
                 showAboutDialog.value = false
             }
-        )
-    }
-}
-
-@Composable
-fun SectionTitle(
-    title: String,
-    onTitleClick: (Int) -> Unit = {}
-) {
-    val yOffset = remember {
-        mutableIntStateOf(0)
-    }
-
-    Column(
-        modifier = Modifier
-            .onGloballyPositioned { coordinates ->
-                yOffset.intValue = coordinates.positionInParent().y.toInt()
-            }
-    ) {
-        Spacer(modifier = Modifier.size(40.dp))
-
-        Text(
-            text = title,
-            modifier = Modifier
-                .clickable {
-                    onTitleClick(yOffset.intValue)
-                },
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.titleMedium
         )
     }
 }
