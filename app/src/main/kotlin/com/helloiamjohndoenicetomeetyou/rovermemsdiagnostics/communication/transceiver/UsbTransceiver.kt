@@ -32,12 +32,6 @@ class UsbTransceiver private constructor(
 
         private const val TIMEOUT_BULK_TRANSFER_MS = 100
 
-        private const val TIMEOUT_ECU_RESPONSE_MS = 1000
-
-        private const val SIZE_FTDI_HEADER = 2
-
-        private const val SIZE_READ_BUFFER = 1024
-
         fun create(usbManager: UsbManager, usbDevice: UsbDevice): UsbTransceiver? {
             val connection = usbManager.openDevice(usbDevice) ?: return null
             val usbInterface = usbDevice.getInterface(0)
@@ -85,50 +79,8 @@ class UsbTransceiver private constructor(
         mConnection.close()
     }
 
-    /**
-     * Reads data from the device and stores it in the provided ByteArray.
-     *
-     * @param bytes The ByteArray to store the received data.
-     */
-    fun read(bytes: ByteArray): Boolean {
-        var result: Int
-        var cursor = 0
-        val startTime = System.currentTimeMillis()
-        do {
-            val response = ByteArray(SIZE_READ_BUFFER)
-            result = mConnection.bulkTransfer(
-                mEndpointIn,
-                response,
-                response.size,
-                TIMEOUT_BULK_TRANSFER_MS
-            )
-
-            if (result < 0) {
-                return false
-            }
-
-            if (result == SIZE_FTDI_HEADER && cursor != 0) {
-                break
-            }
-
-            for (i in SIZE_FTDI_HEADER until result) {
-                if (cursor < bytes.size - 1) {
-                    bytes[++cursor] = response[i]
-                } else {
-                    return false
-                }
-            }
-
-            if (TIMEOUT_ECU_RESPONSE_MS < (System.currentTimeMillis() - startTime)) {
-                return false
-            }
-        } while (true)
-
-        // First byte is total read size.
-        bytes[0] = cursor.toByte()
-
-        return true
-    }
+    fun read(bytes: ByteArray): Int =
+        mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
 
     /**
      * Sends the provided ByteArray byte-by-byte.

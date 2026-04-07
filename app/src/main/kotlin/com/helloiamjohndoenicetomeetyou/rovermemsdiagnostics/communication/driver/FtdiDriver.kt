@@ -52,6 +52,12 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
 
         private const val FTDI_SIO_VALUE_DATA_8N1 =
             (((0 or DATA_BITS) or (PARITY_NONE shl 8)) or (STOP_BITS shl 11))
+
+        private const val TIMEOUT_ECU_RESPONSE_MS = 1000
+
+        private const val SIZE_FTDI_HEADER = 2
+
+        private const val SIZE_READ_BUFFER = 1024
     }
 
     fun initialize(): Boolean {
@@ -81,7 +87,46 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
 
     fun close() = mUsbTransceiver.close()
 
-    fun read(bytes: ByteArray): Boolean = mUsbTransceiver.read(bytes)
+    /**
+     * Reads data from the device and stores it in the provided ByteArray.
+     *
+     * @param bytes The ByteArray to store the received data.
+     */
+    fun read(bytes: ByteArray): Boolean {
+        var cursor = 0
+        val response = ByteArray(SIZE_READ_BUFFER)
+        val startTime = System.currentTimeMillis()
+
+        do {
+            val result = mUsbTransceiver.read(response)
+
+            if (result < 0) {
+                return false
+            }
+
+            if (result == SIZE_FTDI_HEADER && cursor != 0) {
+                break
+            }
+
+            for (i in SIZE_FTDI_HEADER until result) {
+                if (cursor < bytes.size - 1) {
+                    bytes[++cursor] = response[i]
+                } else {
+                    return false
+                }
+            }
+
+            if (TIMEOUT_ECU_RESPONSE_MS < (System.currentTimeMillis() - startTime)) {
+                return false
+            }
+
+            response.fill(0)
+        } while (true)
+
+        bytes[0] = cursor.toByte()
+
+        return true
+    }
 
     fun write(bytes: ByteArray): Boolean = mUsbTransceiver.write(bytes)
 
