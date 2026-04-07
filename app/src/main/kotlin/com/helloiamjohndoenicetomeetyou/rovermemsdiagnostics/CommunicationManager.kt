@@ -17,15 +17,12 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
 
 import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
-import android.hardware.usb.UsbDeviceConnection
-import android.hardware.usb.UsbEndpoint
-import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
-import android.hardware.usb.UsbRequest
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
 class CommunicationManager(
@@ -72,14 +69,6 @@ class CommunicationManager(
         private const val REQUEST_TYPE_OUT: Int =
             UsbConstants.USB_TYPE_VENDOR or LIB_USB_RECIPIENT_DEVICE or LIB_USB_ENDPOINT_OUT
 
-        private const val INDEX = 0
-
-        private const val TIMEOUT_CONTROL = 5000
-
-        private const val TIMEOUT_DATA = 100
-
-        private const val TIMEOUT_ECU_RESPONSE = 1000
-
         private const val BAUD_RATE_16 = 16696 // 9600
 
         private const val DATA_BITS = 8
@@ -89,8 +78,6 @@ class CommunicationManager(
         private const val STOP_BITS: Int = 0x00
 
         private const val SIZE_BUFFER = 4096
-
-        private const val SIZE_HEADER = 2
 
         private val COMMAND_INITIALIZE_ECU_16 =
             byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
@@ -128,21 +115,13 @@ class CommunicationManager(
 
     var mIsConnected = false
 
-    private lateinit var mInEndpoint: UsbEndpoint
-
-    private lateinit var mOutEndpoint: UsbEndpoint
-
     private lateinit var mTuningButtonId: TuningButtonId
 
     private var mHandler: ConnectionManagerHandler
 
-    private var mUsbInterface: UsbInterface? = null
-
     private var mDevice: UsbDevice? = null
 
-    private var mConnection: UsbDeviceConnection? = null
-
-    private var mRequest: UsbRequest? = null
+    private var mUsbTransceiver: UsbTransceiver? = null
 
     private val mConnectRunnable = Runnable {
         connect()
@@ -185,212 +164,51 @@ class CommunicationManager(
     }
 
     private fun connect() {
-        logUi("Start connecting.")
-
-        mDevice ?: run {
-            logUi("Connecting failed due to null device.")
-            disconnected()
+        mDevice ?: return
+        mUsbTransceiver = UsbTransceiver.create(mUsbManager, mDevice!!)
+        mUsbTransceiver ?: run {
+            disconnect()
             return
         }
 
-        mConnection = mUsbManager.openDevice(mDevice)
-        mConnection ?: run {
-            logUi("Failed to open the device.")
-            disconnected()
-            return
-        }
-        logUi("Opening the device succeeded.")
+        // Reset
+        mUsbTransceiver!!.controlTransfer(
+            requestType = REQUEST_TYPE_OUT,
+            request = FTDI_SIO_REQUEST_RESET,
+            value = FTDI_SIO_RESET_SIO
+        )
 
-        if (!getEndpoints(mDevice!!)) {
-            disconnected()
-            return
-        }
+        // Set Parameters
+        mUsbTransceiver!!.controlTransfer(
+            requestType = REQUEST_TYPE_OUT,
+            request = FTDI_SIO_REQUEST_SET_BAUD_RATE,
+            value = BAUD_RATE_16
+        )
+        mUsbTransceiver!!.controlTransfer(
+            requestType = REQUEST_TYPE_OUT,
+            request = FTDI_SIO_REQUEST_SET_DATA,
+            value = (((0 or DATA_BITS) or (PARITY_NONE shl 8)) or (STOP_BITS shl 11))
+        )
 
-        if (!reset()) {
-            disconnected()
-            return
-        }
-
-        mRequest = UsbRequest()
-        mRequest?.initialize(mConnection, mInEndpoint)
-
-        if (!setParameters()) {
-            disconnected()
-            return
-        }
-
-        if (!purgeBuffers()) {
-            disconnected()
-            return
-        }
+        // Purge
+        mUsbTransceiver!!.controlTransfer(
+            requestType = REQUEST_TYPE_OUT,
+            request = FTDI_SIO_REQUEST_RESET,
+            value = FTDI_SIO_RESET_PURGE_RX
+        )
+        mUsbTransceiver!!.controlTransfer(
+            requestType = REQUEST_TYPE_OUT,
+            request = FTDI_SIO_REQUEST_RESET,
+            value = FTDI_SIO_RESET_PURGE_TX
+        )
 
         mHandler.post(mConnect16Runnable)
     }
 
     private fun disconnect() {
-        mConnection?.let { connection ->
-            mUsbInterface?.let { usbInterface ->
-                connection.releaseInterface(usbInterface)
-                connection.close()
-                mConnection = null
-                mUsbInterface = null
-            }
-        }
-
+        mUsbTransceiver?.close()
+        mUsbTransceiver = null
         disconnected()
-    }
-
-    private fun getEndpoints(device: UsbDevice): Boolean {
-        mUsbInterface = device.getInterface(0)
-        mUsbInterface ?: run {
-            return false
-        }
-
-        val forceClaim = true
-        val result: Boolean = mConnection?.claimInterface(mUsbInterface, forceClaim) ?: run {
-            logUi("Claiming the USB interface failed due to null connection.")
-            return false
-        }
-        if (!result) {
-            logUi("Failed to claim the interface.")
-            return false
-        }
-
-        mUsbInterface!!.endpointCount.let { count ->
-            if (count < 2) {
-                logUi("Insufficient endpoint count: $count")
-                return false
-            }
-        }
-
-        mInEndpoint = mUsbInterface!!.getEndpoint(0) ?: run {
-            logUi("Failed to get the in endpoint.")
-            return false
-        }
-
-        mOutEndpoint = mUsbInterface!!.getEndpoint(1) ?: run {
-            logUi("Failed to get the out endpoint.")
-            return false
-        }
-
-        logUi("Getting endpoints succeeded.")
-
-        return true
-    }
-
-    private fun reset(): Boolean {
-        val result: Int? = mConnection?.controlTransfer(
-            REQUEST_TYPE_OUT,
-            FTDI_SIO_REQUEST_RESET,
-            FTDI_SIO_RESET_SIO,
-            INDEX,
-            null,
-            0,
-            TIMEOUT_CONTROL
-        )
-        return when (result) {
-            0 -> {
-                logUi("Resetting succeeded.")
-                true
-            }
-            null -> {
-                logUi("Resetting failed due to null connection.")
-                false
-            }
-            else -> {
-                logUi("Failed to reset.")
-                false
-            }
-        }
-    }
-
-    private fun setParameters(): Boolean {
-        val baudRate = BAUD_RATE_16
-        var result: Int? = mConnection?.controlTransfer(
-            REQUEST_TYPE_OUT,
-            FTDI_SIO_REQUEST_SET_BAUD_RATE,
-            baudRate,
-            INDEX,
-            null,
-            0,
-            TIMEOUT_CONTROL
-        )
-        when (result) {
-            0 -> {
-                // Nothing to do.
-            }
-            null -> {
-                logUi("Setting baud rate failed due to null connection.")
-                return false
-            }
-            else -> {
-                logUi("Failed to set baud rate.")
-                return false
-            }
-        }
-
-        result = mConnection?.controlTransfer(
-            REQUEST_TYPE_OUT,
-            FTDI_SIO_REQUEST_SET_DATA,
-            (((0 or DATA_BITS) or (PARITY_NONE shl 8)) or (STOP_BITS shl 11)),
-            0,
-            null,
-            0,
-            TIMEOUT_CONTROL
-        )
-        return when (result) {
-            0 -> {
-                logUi("Setting parameters succeeded.")
-                true
-            }
-            null -> {
-                logUi("Setting parameters failed due to null connection.")
-                false
-            }
-            else -> {
-                logUi("Failed to set parameters.")
-                false
-            }
-        }
-    }
-
-    private fun purgeBuffers(): Boolean {
-        var result: Int? = mConnection?.controlTransfer(
-            REQUEST_TYPE_OUT,
-            FTDI_SIO_REQUEST_RESET,
-            FTDI_SIO_RESET_PURGE_RX,
-            INDEX,
-            null,
-            0,
-            TIMEOUT_CONTROL
-        )
-        if (null == result) {
-            logUi("Purging the write buffer failed due to null connection.")
-            return false
-        } else if (result < 0) {
-            logUi("Failed to purge the write buffer.")
-            return false
-        }
-
-        result = mConnection?.controlTransfer(
-            REQUEST_TYPE_OUT,
-            FTDI_SIO_REQUEST_RESET,
-            FTDI_SIO_RESET_PURGE_TX,
-            INDEX,
-            null,
-            0,
-            TIMEOUT_CONTROL
-        )
-        return if (null == result) {
-            logUi("Purging the read buffer failed due to null connection.")
-            false
-        } else if (result < 0) {
-            logUi("Failed to purge the read buffer.")
-            false
-        } else {
-            logUi("Purging buffers succeeded.")
-            true
-        }
     }
 
     private fun connect16() {
@@ -472,77 +290,16 @@ class CommunicationManager(
     }
 
     private fun sendCommand(command: ByteArray, readBuffer: ByteArray): Boolean {
-        command.forEach { byte ->
-            if (!write(byteArrayOf(byte))) {
+        val usbTransceiver = mUsbTransceiver ?: return false
+        command.forEach { c ->
+            if (!usbTransceiver.write(byteArrayOf(c))) {
+                postMessage(what = MessageId.DISCONNECT.ordinal)
                 return false
             }
-            if (!read(readBuffer)) {
+            if (!usbTransceiver.read(readBuffer)) {
+                postMessage(what = MessageId.DISCONNECT.ordinal)
                 return false
             }
-        }
-
-        return true
-    }
-
-    private fun read(readBytes: ByteArray): Boolean {
-        var size: Int
-        var cursor = 0
-
-        val startTime = System.currentTimeMillis()
-
-        do {
-            val buffer = ByteArray(SIZE_BUFFER)
-            size = mConnection?.bulkTransfer(
-                mInEndpoint,
-                buffer,
-                buffer.size,
-                TIMEOUT_DATA
-            ) ?: -1
-
-            if (size <= 0) {
-                logUi("Failed to receive response of the command.")
-                postMessage(MessageId.DISCONNECT.ordinal)
-                return false
-            }
-
-            if (SIZE_HEADER == size && cursor != 0) {
-                break
-            }
-
-            for (i in SIZE_HEADER until size) {
-                readBytes[++cursor] = buffer[i]
-            }
-
-            if (TIMEOUT_ECU_RESPONSE < (System.currentTimeMillis() - startTime)) {
-                postMessage(MessageId.DISCONNECT.ordinal)
-                return false
-            }
-        } while (true)
-
-        // The first byte is total read size.
-        readBytes[0] = cursor.toByte()
-
-        val sb = StringBuffer()
-        sb.append("READ: \n")
-        for (i in 0..cursor) {
-            sb.append(readBytes[i].toHexStringRmd() + " ")
-        }
-        logUi(sb.toString())
-
-        return true
-    }
-
-    private fun write(writeBytes: ByteArray): Boolean {
-        val size: Int = mConnection?.bulkTransfer(
-            mOutEndpoint,
-            writeBytes,
-            writeBytes.size,
-            TIMEOUT_DATA
-        ) ?: -1
-        if (size < 0) {
-            logUi("Failed to send a command.")
-            disconnect()
-            return false
         }
         return true
     }
@@ -556,10 +313,6 @@ class CommunicationManager(
     private fun disconnected() {
         mIsConnected = false
         mMainActivity.postMessage(MainActivity.Companion.MessageId.DISCONNECTED.ordinal)
-    }
-
-    private fun logUi(message: String) {
-        mMainActivity.postMessage(MainActivity.Companion.MessageId.HOME.ordinal, obj = message)
     }
 
     private inner class ConnectionManagerHandler(looper: Looper) : Handler(looper) {
