@@ -15,13 +15,13 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
 
-import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
@@ -39,22 +39,6 @@ class CommunicationManager(
 
         // private const val LIB_USB_ENDPOINT_IN: Int = 0x80
 
-        private const val LIB_USB_ENDPOINT_OUT: Int = 0x00
-
-        private const val LIB_USB_RECIPIENT_DEVICE: Int = 0x00
-
-        private const val FTDI_SIO_REQUEST_RESET = 0
-
-        private const val FTDI_SIO_REQUEST_SET_BAUD_RATE = 3
-
-        private const val FTDI_SIO_REQUEST_SET_DATA = 4
-
-        private const val FTDI_SIO_RESET_SIO = 0
-
-        private const val FTDI_SIO_RESET_PURGE_RX = 1
-
-        private const val FTDI_SIO_RESET_PURGE_TX = 2
-
         // private const val FTDI_SIO_SET_BREAK_ON = 1 shl 14
 
         // private const val FTDI_SIO_SET_BREAK_OFF = 0 shl 14
@@ -65,17 +49,6 @@ class CommunicationManager(
                     LIB_USB_RECIPIENT_DEVICE or
                     LIB_USB_ENDPOINT_IN
          */
-
-        private const val REQUEST_TYPE_OUT: Int =
-            UsbConstants.USB_TYPE_VENDOR or LIB_USB_RECIPIENT_DEVICE or LIB_USB_ENDPOINT_OUT
-
-        private const val BAUD_RATE_16 = 16696 // 9600
-
-        private const val DATA_BITS = 8
-
-        private const val PARITY_NONE: Int = 0x00
-
-        private const val STOP_BITS: Int = 0x00
 
         private const val SIZE_BUFFER = 4096
 
@@ -121,7 +94,7 @@ class CommunicationManager(
 
     private var mDevice: UsbDevice? = null
 
-    private var mUsbTransceiver: UsbTransceiver? = null
+    private var mFtdiDriver: FtdiDriver? = null
 
     private val mConnectRunnable = Runnable {
         connect()
@@ -164,50 +137,23 @@ class CommunicationManager(
     }
 
     private fun connect() {
-        mDevice ?: return
-        mUsbTransceiver = UsbTransceiver.create(mUsbManager, mDevice!!)
-        mUsbTransceiver ?: run {
+        val device = mDevice ?: return
+        val transceiver = UsbTransceiver.create(mUsbManager, device) ?: run {
             disconnect()
             return
         }
-
-        // Reset
-        mUsbTransceiver!!.controlTransfer(
-            requestType = REQUEST_TYPE_OUT,
-            request = FTDI_SIO_REQUEST_RESET,
-            value = FTDI_SIO_RESET_SIO
-        )
-
-        // Set Parameters
-        mUsbTransceiver!!.controlTransfer(
-            requestType = REQUEST_TYPE_OUT,
-            request = FTDI_SIO_REQUEST_SET_BAUD_RATE,
-            value = BAUD_RATE_16
-        )
-        mUsbTransceiver!!.controlTransfer(
-            requestType = REQUEST_TYPE_OUT,
-            request = FTDI_SIO_REQUEST_SET_DATA,
-            value = (((0 or DATA_BITS) or (PARITY_NONE shl 8)) or (STOP_BITS shl 11))
-        )
-
-        // Purge
-        mUsbTransceiver!!.controlTransfer(
-            requestType = REQUEST_TYPE_OUT,
-            request = FTDI_SIO_REQUEST_RESET,
-            value = FTDI_SIO_RESET_PURGE_RX
-        )
-        mUsbTransceiver!!.controlTransfer(
-            requestType = REQUEST_TYPE_OUT,
-            request = FTDI_SIO_REQUEST_RESET,
-            value = FTDI_SIO_RESET_PURGE_TX
-        )
+        mFtdiDriver = FtdiDriver(transceiver)
+        if (mFtdiDriver?.initialize() == false) {
+            disconnect()
+            return
+        }
 
         mHandler.post(mConnect16Runnable)
     }
 
     private fun disconnect() {
-        mUsbTransceiver?.close()
-        mUsbTransceiver = null
+        mFtdiDriver?.close()
+        mFtdiDriver = null
         disconnected()
     }
 
@@ -290,13 +236,13 @@ class CommunicationManager(
     }
 
     private fun sendCommand(command: ByteArray, readBuffer: ByteArray): Boolean {
-        val usbTransceiver = mUsbTransceiver ?: return false
+        val driver = mFtdiDriver ?: return false
         command.forEach { c ->
-            if (!usbTransceiver.write(byteArrayOf(c))) {
+            if (!driver.write(byteArrayOf(c))) {
                 postMessage(what = MessageId.DISCONNECT.ordinal)
                 return false
             }
-            if (!usbTransceiver.read(readBuffer)) {
+            if (!driver.read(readBuffer)) {
                 postMessage(what = MessageId.DISCONNECT.ordinal)
                 return false
             }

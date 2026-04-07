@@ -70,7 +70,7 @@ class UsbTransceiver private constructor(
         buffer: ByteArray? = null,
         length: Int = 0,
         timeout: Int = TIMEOUT_CONTROL_MS
-    ) = mConnection.controlTransfer(
+    ): Int = mConnection.controlTransfer(
         requestType,
         request,
         value,
