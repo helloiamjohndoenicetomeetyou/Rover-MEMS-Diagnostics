@@ -128,7 +128,7 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
         return true
     }
 
-    fun write(bytes: ByteArray): Boolean = mUsbTransceiver.write(bytes)
+    fun write(bytes: ByteArray): Boolean = 0 < mUsbTransceiver.write(bytes)
 
     private fun controlTransfer(request: Int, value: Int): Int =
         mUsbTransceiver.controlTransfer(

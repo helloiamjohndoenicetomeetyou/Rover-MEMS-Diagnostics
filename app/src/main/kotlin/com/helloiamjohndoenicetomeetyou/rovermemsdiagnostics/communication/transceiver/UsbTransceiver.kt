@@ -87,18 +87,6 @@ class UsbTransceiver private constructor(
      *
      * @param bytes ByteArray to write.
      */
-    fun write(bytes: ByteArray): Boolean {
-        bytes.forEach { byte ->
-            val result = mConnection.bulkTransfer(
-                mEndpointOut,
-                byteArrayOf(byte),
-                /* length = */ 1,
-                TIMEOUT_BULK_TRANSFER_MS
-            )
-            if (result < 0) {
-                return false
-            }
-        }
-        return true
-    }
+    fun write(bytes: ByteArray): Int =
+        mConnection.bulkTransfer(mEndpointOut, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
 }
