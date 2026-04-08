@@ -22,6 +22,7 @@ import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
@@ -50,37 +51,6 @@ class CommunicationManager(
                     LIB_USB_ENDPOINT_IN
          */
 
-        private const val SIZE_BUFFER = 4096
-
-        private val COMMAND_INITIALIZE_ECU_16 =
-            byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
-
-        private val COMMAND_NOP = byteArrayOf(0xF4.toByte())
-
-        private val COMMAND_REQUEST_DATA_16_7D = byteArrayOf(0x7D.toByte())
-
-        private val COMMAND_REQUEST_DATA_16_80 = byteArrayOf(0x80.toByte())
-
-        private val COMMAND_CLEAR_FAULT_CODES = byteArrayOf(0xCC.toByte())
-
-        private val COMMAND_INCREMENT_IGNITION_TIMING = byteArrayOf(0x93.toByte())
-
-        private val COMMAND_DECREMENT_IGNITION_TIMING = byteArrayOf(0x94.toByte())
-
-        private val COMMAND_INCREMENT_IDLE_SPEED = byteArrayOf(0x91.toByte())
-
-        private val COMMAND_DECREMENT_IDLE_SPEED = byteArrayOf(0x92.toByte())
-
-        private val COMMAND_INCREMENT_IDLE_DECAY = byteArrayOf(0x89.toByte())
-
-        private val COMMAND_DECREMENT_IDLE_DECAY = byteArrayOf(0x8A.toByte())
-
-        private val COMMAND_INCREMENT_FUEL_TRIM = byteArrayOf(0x79.toByte())
-
-        private val COMMAND_DECREMENT_FUEL_TRIM = byteArrayOf(0x7A.toByte())
-
-        private val COMMAND_RESET_TUNING = byteArrayOf(0xFA.toByte())
-
         private const val DELAY_REQUEST_DATA = 500L
 
         private val TAG = CommunicationManager::class.java.simpleName
@@ -94,14 +64,10 @@ class CommunicationManager(
 
     private var mDevice: UsbDevice? = null
 
-    private var mFtdiDriver: FtdiDriver? = null
+    private var mMems16Protocol: Mems16Protocol? = null
 
     private val mConnectRunnable = Runnable {
         connect()
-    }
-
-    private val mConnect16Runnable = Runnable {
-        connect16()
     }
 
     private val mDisconnectRunnable = Runnable {
@@ -138,116 +104,79 @@ class CommunicationManager(
 
     private fun connect() {
         val device = mDevice ?: return
+
         val transceiver = UsbTransceiver.create(mUsbManager, device) ?: run {
-            disconnect()
-            return
-        }
-        mFtdiDriver = FtdiDriver(transceiver)
-        if (mFtdiDriver?.initialize() == false) {
-            disconnect()
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        mHandler.post(mConnect16Runnable)
-    }
-
-    private fun disconnect() {
-        mFtdiDriver?.close()
-        mFtdiDriver = null
-        disconnected()
-    }
-
-    private fun connect16() {
-        val readBuffer = ByteArray(SIZE_BUFFER)
-
-        if (!sendCommand(COMMAND_INITIALIZE_ECU_16, readBuffer)) {
+        val driver = FtdiDriver(transceiver)
+        if (!driver.initialize()) {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        for (i in readBuffer.indices) {
-            readBuffer[i] = 0
-        }
-
-        if (!sendCommand(COMMAND_NOP, readBuffer)) {
+        mMems16Protocol = Mems16Protocol(driver)
+        if (mMems16Protocol?.initialize() == false) {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
         connected()
     }
 
+    private fun disconnect() {
+        mMems16Protocol?.close()
+        mMems16Protocol = null
+        disconnected()
+    }
+
     private fun requestData16() {
-        val buffer80 = ByteArray(SIZE_BUFFER)
-        if (!sendCommand(COMMAND_REQUEST_DATA_16_80, buffer80)) {
+        val mems16Protocol = mMems16Protocol ?: run {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        val buffer7D = ByteArray(SIZE_BUFFER)
-        if (!sendCommand(COMMAND_REQUEST_DATA_16_7D, buffer7D)) {
+        val dataPacket = mems16Protocol.requestLiveData() ?: run {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
         mMainActivity.postMessage(
             what = MainActivity.Companion.MessageId.LIVE_DATA.ordinal,
-            obj = DataPacket(buffer80, buffer7D)
+            obj = dataPacket
         )
     }
 
     private fun clearFaultCodes() {
-        val readBuffer = ByteArray(SIZE_BUFFER)
-        if (!sendCommand(COMMAND_CLEAR_FAULT_CODES, readBuffer)) {
+        val mems16Protocol = mMems16Protocol ?: run {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
+
+        if (!mems16Protocol.clearFaultCodes()) {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
+            return
+        }
+
         mMainActivity.postMessage(MainActivity.Companion.MessageId.FAULT_CODES.ordinal)
     }
 
     private fun tune() {
-        val command = when (mTuningButtonId) {
-
-            // Ignition Timing
-            TuningButtonId.INCREMENT_IGNITION_TIMING -> COMMAND_INCREMENT_IGNITION_TIMING
-            TuningButtonId.DECREMENT_IGNITION_TIMING -> COMMAND_DECREMENT_IGNITION_TIMING
-
-            // Idle Speed
-            TuningButtonId.INCREMENT_IDLE_SPEED -> COMMAND_INCREMENT_IDLE_SPEED
-            TuningButtonId.DECREMENT_IDLE_SPEED -> COMMAND_DECREMENT_IDLE_SPEED
-
-            // Idle Decay
-            TuningButtonId.INCREMENT_IDLE_DECAY -> COMMAND_INCREMENT_IDLE_DECAY
-            TuningButtonId.DECREMENT_IDLE_DECAY -> COMMAND_DECREMENT_IDLE_DECAY
-
-            // Fuel Trim
-            TuningButtonId.INCREMENT_FUEL_TRIM -> COMMAND_INCREMENT_FUEL_TRIM
-            TuningButtonId.DECREMENT_FUEL_TRIM -> COMMAND_DECREMENT_FUEL_TRIM
-
-            // Reset
-            TuningButtonId.RESET_TUNING -> COMMAND_RESET_TUNING
+        val mems16Protocol = mMems16Protocol ?: run {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
+            return
         }
 
-        val readBuffer = ByteArray(SIZE_BUFFER)
-
-        if (!sendCommand(command, readBuffer)) {
+        val newValue = mems16Protocol.performTuning(mTuningButtonId) ?: run {
+            postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
         mMainActivity.postMessage(
             what = MainActivity.Companion.MessageId.TUNING.ordinal,
-            obj = Pair(mTuningButtonId, readBuffer[2].toHexStringRmd())
+            obj = Pair(mTuningButtonId, newValue)
         )
-    }
-
-    private fun sendCommand(command: ByteArray, readBuffer: ByteArray): Boolean {
-        val driver = mFtdiDriver ?: return false
-        command.forEach { c ->
-            if (!driver.write(byteArrayOf(c))) {
-                postMessage(what = MessageId.DISCONNECT.ordinal)
-                return false
-            }
-            if (!driver.read(readBuffer)) {
-                postMessage(what = MessageId.DISCONNECT.ordinal)
-                return false
-            }
-        }
-        return true
     }
 
     private fun connected() {

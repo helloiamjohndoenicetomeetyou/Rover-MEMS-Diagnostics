@@ -83,7 +83,7 @@ class UsbTransceiver private constructor(
         mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
 
     /**
-     * Sends the provided ByteArray byte-by-byte.
+     * Sends the provided ByteArray.
      *
      * @param bytes ByteArray to write.
      */
