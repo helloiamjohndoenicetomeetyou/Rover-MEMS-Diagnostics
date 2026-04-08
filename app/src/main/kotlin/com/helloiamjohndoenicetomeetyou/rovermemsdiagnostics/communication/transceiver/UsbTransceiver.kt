@@ -26,7 +26,7 @@ class UsbTransceiver private constructor(
     private val mConnection: UsbDeviceConnection,
     private val mEndpointIn: UsbEndpoint,
     private val mEndpointOut: UsbEndpoint
-) {
+) : Transceiver {
     companion object {
         private const val TIMEOUT_CONTROL_MS = 5000
 
@@ -56,6 +56,22 @@ class UsbTransceiver private constructor(
         }
     }
 
+    override fun read(bytes: ByteArray): Int =
+        mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
+
+    /**
+     * Sends the provided ByteArray.
+     *
+     * @param bytes ByteArray to write.
+     */
+    override fun write(bytes: ByteArray): Int =
+        mConnection.bulkTransfer(mEndpointOut, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
+
+    override fun close() {
+        mConnection.releaseInterface(mInterface)
+        mConnection.close()
+    }
+
     fun controlTransfer(
         requestType: Int,
         request: Int,
@@ -73,20 +89,4 @@ class UsbTransceiver private constructor(
         length,
         timeout
     )
-
-    fun read(bytes: ByteArray): Int =
-        mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
-
-    /**
-     * Sends the provided ByteArray.
-     *
-     * @param bytes ByteArray to write.
-     */
-    fun write(bytes: ByteArray): Int =
-        mConnection.bulkTransfer(mEndpointOut, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
-
-    fun close() {
-        mConnection.releaseInterface(mInterface)
-        mConnection.close()
-    }
 }

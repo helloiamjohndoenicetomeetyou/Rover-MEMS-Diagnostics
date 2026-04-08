@@ -20,7 +20,10 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driv
  */
 interface DeviceDriver {
     fun initialize(): Boolean
+
     fun read(bytes: ByteArray): Boolean
+
     fun write(bytes: ByteArray): Boolean
+
     fun close()
 }

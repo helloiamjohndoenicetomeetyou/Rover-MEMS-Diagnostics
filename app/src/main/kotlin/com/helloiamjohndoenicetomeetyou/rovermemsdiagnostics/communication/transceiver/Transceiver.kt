@@ -13,21 +13,12 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol
+package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver
 
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
+interface Transceiver {
+    fun read(bytes: ByteArray): Int
 
-/**
- * Interface for MEMS protocols.
- */
-interface MemsProtocol {
-    fun initialize(): Boolean
-
-    fun requestLiveData(): DataPacket?
-
-    fun clearFaultCodes(): Boolean
-
-    fun performTuning(item: Int): Any?
+    fun write(bytes: ByteArray): Int
 
     fun close()
 }
