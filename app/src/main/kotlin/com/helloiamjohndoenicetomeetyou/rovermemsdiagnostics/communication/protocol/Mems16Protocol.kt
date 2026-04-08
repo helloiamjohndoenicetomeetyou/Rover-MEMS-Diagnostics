@@ -16,11 +16,11 @@
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol
 
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.DeviceDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.toHexStringRmd
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
-class Mems16Protocol(private val mDriver: FtdiDriver) {
+class Mems16Protocol(private val mDriver: DeviceDriver) {
     companion object {
         private val COMMAND_INITIALIZE_ECU_16 =
             byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
@@ -68,8 +68,6 @@ class Mems16Protocol(private val mDriver: FtdiDriver) {
         return true
     }
 
-    fun close() = mDriver.close()
-
     fun requestLiveData(): DataPacket? {
         val bytes80 = ByteArray(SIZE_BUFFER)
         if (!sendCommand(COMMAND_REQUEST_DATA_16_80, bytes80)) {
@@ -96,6 +94,8 @@ class Mems16Protocol(private val mDriver: FtdiDriver) {
 
         return bytes[2].toHexStringRmd()
     }
+
+    fun close() = mDriver.close()
 
     private fun sendCommand(command: ByteArray, bytes: ByteArray): Boolean {
         command.forEach { byte ->

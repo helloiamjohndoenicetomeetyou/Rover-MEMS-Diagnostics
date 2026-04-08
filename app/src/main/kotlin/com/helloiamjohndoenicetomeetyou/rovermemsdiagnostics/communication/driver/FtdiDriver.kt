@@ -18,7 +18,7 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driv
 import android.hardware.usb.UsbConstants
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 
-class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
+class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
     companion object {
         private const val USB_RECIPIENT_DEVICE = 0x00
 
@@ -60,7 +60,7 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
         private const val SIZE_READ_BUFFER = 1024
     }
 
-    fun initialize(): Boolean {
+    override fun initialize(): Boolean {
 
         // Reset FTDI chip.
         if (controlTransfer(FTDI_SIO_REQUEST_RESET, FTDI_SIO_VALUE_RESET_SIO) < 0) {
@@ -85,14 +85,12 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
         return true
     }
 
-    fun close() = mUsbTransceiver.close()
-
     /**
      * Reads data from the device and stores it in the provided ByteArray.
      *
      * @param bytes The ByteArray to store the received data.
      */
-    fun read(bytes: ByteArray): Boolean {
+    override fun read(bytes: ByteArray): Boolean {
         var cursor = 0
         val response = ByteArray(SIZE_READ_BUFFER)
         val startTime = System.currentTimeMillis()
@@ -128,7 +126,9 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) {
         return true
     }
 
-    fun write(bytes: ByteArray): Boolean = 0 < mUsbTransceiver.write(bytes)
+    override fun write(bytes: ByteArray): Boolean = 0 < mUsbTransceiver.write(bytes)
+
+    override fun close() = mUsbTransceiver.close()
 
     private fun controlTransfer(request: Int, value: Int): Int =
         mUsbTransceiver.controlTransfer(
