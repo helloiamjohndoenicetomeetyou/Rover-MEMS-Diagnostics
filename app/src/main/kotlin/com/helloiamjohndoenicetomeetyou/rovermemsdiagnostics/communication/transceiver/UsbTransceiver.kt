@@ -74,11 +74,6 @@ class UsbTransceiver private constructor(
         timeout
     )
 
-    fun close() {
-        mConnection.releaseInterface(mInterface)
-        mConnection.close()
-    }
-
     fun read(bytes: ByteArray): Int =
         mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
 
@@ -89,4 +84,9 @@ class UsbTransceiver private constructor(
      */
     fun write(bytes: ByteArray): Int =
         mConnection.bulkTransfer(mEndpointOut, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
+
+    fun close() {
+        mConnection.releaseInterface(mInterface)
+        mConnection.close()
+    }
 }
