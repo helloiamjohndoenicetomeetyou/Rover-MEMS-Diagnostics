@@ -23,6 +23,7 @@ import android.os.Looper
 import android.os.Message
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
@@ -64,7 +65,7 @@ class CommunicationManager(
 
     private var mDevice: UsbDevice? = null
 
-    private var mMems16Protocol: Mems16Protocol? = null
+    private var mMemsProtocol: MemsProtocol? = null
 
     private val mConnectRunnable = Runnable {
         connect()
@@ -116,8 +117,8 @@ class CommunicationManager(
             return
         }
 
-        mMems16Protocol = Mems16Protocol(driver)
-        if (mMems16Protocol?.initialize() == false) {
+        mMemsProtocol = Mems16Protocol(driver)
+        if (mMemsProtocol?.initialize() == false) {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
@@ -126,18 +127,18 @@ class CommunicationManager(
     }
 
     private fun disconnect() {
-        mMems16Protocol?.close()
-        mMems16Protocol = null
+        mMemsProtocol?.close()
+        mMemsProtocol = null
         disconnected()
     }
 
     private fun requestData16() {
-        val mems16Protocol = mMems16Protocol ?: run {
+        val memsProtocol = mMemsProtocol ?: run {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        val dataPacket = mems16Protocol.requestLiveData() ?: run {
+        val dataPacket = memsProtocol.requestLiveData() ?: run {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
@@ -149,12 +150,12 @@ class CommunicationManager(
     }
 
     private fun clearFaultCodes() {
-        val mems16Protocol = mMems16Protocol ?: run {
+        val memsProtocol = mMemsProtocol ?: run {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        if (!mems16Protocol.clearFaultCodes()) {
+        if (!memsProtocol.clearFaultCodes()) {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
@@ -163,12 +164,12 @@ class CommunicationManager(
     }
 
     private fun tune() {
-        val mems16Protocol = mMems16Protocol ?: run {
+        val memsProtocol = mMemsProtocol ?: run {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }
 
-        val newValue = mems16Protocol.performTuning(mTuningButtonId) ?: run {
+        val newValue = memsProtocol.performTuning(mTuningButtonId.ordinal) ?: run {
             postMessage(what = MessageId.DISCONNECT.ordinal)
             return
         }

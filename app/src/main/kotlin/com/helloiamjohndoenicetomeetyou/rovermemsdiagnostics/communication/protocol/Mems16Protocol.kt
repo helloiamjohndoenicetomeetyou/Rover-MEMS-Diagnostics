@@ -20,7 +20,7 @@ import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.drive
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.toHexStringRmd
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
-class Mems16Protocol(private val mDriver: DeviceDriver) {
+class Mems16Protocol(private val mDriver: DeviceDriver) : MemsProtocol {
     companion object {
         private val COMMAND_INITIALIZE_ECU_16 =
             byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
@@ -54,7 +54,7 @@ class Mems16Protocol(private val mDriver: DeviceDriver) {
         private const val SIZE_BUFFER = 1024
     }
 
-    fun initialize(): Boolean {
+    override fun initialize(): Boolean {
         val bytes = ByteArray(SIZE_BUFFER)
 
         if (!sendCommand(COMMAND_INITIALIZE_ECU_16, bytes)) {
@@ -68,7 +68,7 @@ class Mems16Protocol(private val mDriver: DeviceDriver) {
         return true
     }
 
-    fun requestLiveData(): DataPacket? {
+    override fun requestLiveData(): DataPacket? {
         val bytes80 = ByteArray(SIZE_BUFFER)
         if (!sendCommand(COMMAND_REQUEST_DATA_16_80, bytes80)) {
             return null
@@ -82,20 +82,20 @@ class Mems16Protocol(private val mDriver: DeviceDriver) {
         return DataPacket(bytes80, bytes7D)
     }
 
-    fun clearFaultCodes(): Boolean =
+    override fun clearFaultCodes(): Boolean =
         sendCommand(COMMAND_CLEAR_FAULT_CODES, ByteArray(SIZE_BUFFER))
 
-    fun performTuning(buttonId: TuningButtonId): String? {
+    override fun performTuning(item: Int): String? {
         val bytes = ByteArray(SIZE_BUFFER)
 
-        if (!sendCommand(getTuningCommand(buttonId), bytes)) {
+        if (!sendCommand(getTuningCommand(item), bytes)) {
             return null
         }
 
         return bytes[2].toHexStringRmd()
     }
 
-    fun close() = mDriver.close()
+    override fun close() = mDriver.close()
 
     private fun sendCommand(command: ByteArray, bytes: ByteArray): Boolean {
         command.forEach { byte ->
@@ -111,26 +111,28 @@ class Mems16Protocol(private val mDriver: DeviceDriver) {
         return true
     }
 
-    private fun getTuningCommand(buttonId: TuningButtonId): ByteArray =
-        when (buttonId) {
+    private fun getTuningCommand(item: Int): ByteArray =
+        when (item) {
 
             // Ignition Timing
-            TuningButtonId.INCREMENT_IGNITION_TIMING -> COMMAND_INCREMENT_IGNITION_TIMING
-            TuningButtonId.DECREMENT_IGNITION_TIMING -> COMMAND_DECREMENT_IGNITION_TIMING
+            TuningButtonId.INCREMENT_IGNITION_TIMING.ordinal -> COMMAND_INCREMENT_IGNITION_TIMING
+            TuningButtonId.DECREMENT_IGNITION_TIMING.ordinal -> COMMAND_DECREMENT_IGNITION_TIMING
 
             // Idle Speed
-            TuningButtonId.INCREMENT_IDLE_SPEED -> COMMAND_INCREMENT_IDLE_SPEED
-            TuningButtonId.DECREMENT_IDLE_SPEED -> COMMAND_DECREMENT_IDLE_SPEED
+            TuningButtonId.INCREMENT_IDLE_SPEED.ordinal -> COMMAND_INCREMENT_IDLE_SPEED
+            TuningButtonId.DECREMENT_IDLE_SPEED.ordinal -> COMMAND_DECREMENT_IDLE_SPEED
 
             // Idle Decay
-            TuningButtonId.INCREMENT_IDLE_DECAY -> COMMAND_INCREMENT_IDLE_DECAY
-            TuningButtonId.DECREMENT_IDLE_DECAY -> COMMAND_DECREMENT_IDLE_DECAY
+            TuningButtonId.INCREMENT_IDLE_DECAY.ordinal -> COMMAND_INCREMENT_IDLE_DECAY
+            TuningButtonId.DECREMENT_IDLE_DECAY.ordinal -> COMMAND_DECREMENT_IDLE_DECAY
 
             // Fuel Trim
-            TuningButtonId.INCREMENT_FUEL_TRIM -> COMMAND_INCREMENT_FUEL_TRIM
-            TuningButtonId.DECREMENT_FUEL_TRIM -> COMMAND_DECREMENT_FUEL_TRIM
+            TuningButtonId.INCREMENT_FUEL_TRIM.ordinal -> COMMAND_INCREMENT_FUEL_TRIM
+            TuningButtonId.DECREMENT_FUEL_TRIM.ordinal -> COMMAND_DECREMENT_FUEL_TRIM
 
             // Reset
-            TuningButtonId.RESET_TUNING -> COMMAND_RESET_TUNING
+            TuningButtonId.RESET_TUNING.ordinal -> COMMAND_RESET_TUNING
+
+            else -> throw IllegalArgumentException("Invalid Tuning Item ID")
         }
 }
