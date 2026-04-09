@@ -116,7 +116,7 @@ class DataPacket() {
 
         // int80: 1 0x01
         // int80: 2 0x02: Engine Speed
-        engineSpeed = (int80[1] shl 8 + int80[2]).toString()
+        engineSpeed = ((int80[1] shl 8) + int80[2]).toString()
 
         // int80: 3 0x03: Water Temperature
         waterTemperature = (int80[3] - 55).toString()
