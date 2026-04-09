@@ -34,6 +34,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.core.content.ContextCompat
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.CommunicationManager
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel

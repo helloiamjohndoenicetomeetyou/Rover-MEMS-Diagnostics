@@ -13,7 +13,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
+package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
@@ -21,6 +21,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.os.Message
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.MainActivity
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocol
