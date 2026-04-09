@@ -17,7 +17,7 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

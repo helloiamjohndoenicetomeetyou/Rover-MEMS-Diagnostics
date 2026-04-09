@@ -15,7 +15,7 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol
 
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.DataPacket
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 
 /**
  * Interface for MEMS protocols.

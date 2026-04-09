@@ -13,7 +13,7 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
+package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 
 class DataPacket(
     val engineSpeed: String = "",
