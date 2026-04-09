@@ -10,9 +10,9 @@ An Android application for Rover MEMS (Modular Engine Management System) diagnos
 <img src="./3.png" width="300">
 
 ## Download
-Version 2026.03.29.14.26
+Version 2026.04.09.20.33
 
-[📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases/download/2026.03.29.14.26/2026.03.29.14.26.apk)
+[📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases/download/2026.04.09.20.33/2026.04.09.20.33.apk)
 
 ## Supported ECU Version
 * MEMS 1.6 (Commonly found in Classic Mini SPI)
