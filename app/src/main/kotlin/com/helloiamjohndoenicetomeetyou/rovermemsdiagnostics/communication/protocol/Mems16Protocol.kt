@@ -27,8 +27,8 @@ import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataP
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.ON
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.OPENED
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.DeviceDriver
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.toHexStringRmd
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.utilities.toHexStringRmd
 
 class Mems16Protocol(private val mDriver: DeviceDriver) : MemsProtocol {
     companion object {

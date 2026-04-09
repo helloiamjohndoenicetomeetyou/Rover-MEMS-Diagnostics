@@ -13,6 +13,6 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics
+package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.utilities
 
 fun Byte.toHexStringRmd(): String = "0x" + "%02X".format(this)
