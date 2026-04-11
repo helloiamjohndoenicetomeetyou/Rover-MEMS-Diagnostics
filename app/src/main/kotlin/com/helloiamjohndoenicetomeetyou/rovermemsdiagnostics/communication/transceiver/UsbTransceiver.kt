@@ -15,6 +15,7 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver
 
+import android.hardware.usb.UsbConstants
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
@@ -41,16 +42,32 @@ class UsbTransceiver private constructor(
                 return null
             }
 
-            usbInterface.endpointCount.let { count ->
-                if (count < 2) {
-                    connection.releaseInterface(usbInterface)
-                    connection.close()
-                    return null
+            var endpointIn: UsbEndpoint? = null
+            var endpointOut: UsbEndpoint? = null
+
+            for (i in 0 until usbInterface.endpointCount) {
+                val endpoint = usbInterface.getEndpoint(i)
+
+                when {
+                    endpointIn == null && endpoint.direction == UsbConstants.USB_DIR_IN -> {
+                        endpointIn = endpoint
+                    }
+
+                    endpointOut == null && endpoint.direction == UsbConstants.USB_DIR_OUT -> {
+                        endpointOut = endpoint
+                    }
+                }
+
+                if (endpointIn != null && endpointOut != null) {
+                    break
                 }
             }
 
-            val endpointIn = usbInterface.getEndpoint(0) ?: return null
-            val endpointOut = usbInterface.getEndpoint(1) ?: return null
+            if (endpointIn == null || endpointOut == null) {
+                connection.releaseInterface(usbInterface)
+                connection.close()
+                return null
+            }
 
             return UsbTransceiver(usbInterface, connection, endpointIn, endpointOut)
         }
