@@ -17,29 +17,29 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import android.os.Handler
-import android.os.HandlerThread
-import android.os.Looper
-import android.os.Message
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.MainActivity
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
+import java.util.concurrent.Executors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class CommunicationManager(
     private val mMainActivity: MainActivity,
     private val mUsbManager: UsbManager
 ) {
     companion object {
-        enum class MessageId {
-            CONNECT,
-            DISCONNECT,
-            CLEAR_FAULT_CODES,
-            PERFORM_TUNING
-        }
-
         // private const val LIB_USB_ENDPOINT_IN: Int = 0x80
 
         // private const val FTDI_SIO_SET_BREAK_ON = 1 shl 14
@@ -54,166 +54,149 @@ class CommunicationManager(
          */
 
         private const val DELAY_REQUEST_DATA = 500L
-
-        private val TAG = CommunicationManager::class.java.simpleName
     }
 
-    var mIsConnected = false
-
-    private lateinit var mTuningButtonId: TuningButtonId
-
-    private var mHandler: ConnectionManagerHandler
-
-    private var mDevice: UsbDevice? = null
+    val isConnected: Boolean get() = mMemsProtocol != null
 
     private var mMemsProtocol: MemsProtocol? = null
 
-    private val mConnectRunnable = Runnable {
-        connect()
-    }
+    private var mLiveDataJob: Job? = null
 
-    private val mDisconnectRunnable = Runnable {
-        disconnect()
-    }
+    private val mCommunicationDispatcher =
+        Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
-    private val mClearFaultCodesRunnable = Runnable {
-        clearFaultCodes()
-    }
+    private val mScope = CoroutineScope(mCommunicationDispatcher + SupervisorJob())
 
-    private val mTuningRunnable = Runnable {
-        tune()
-    }
+    private val mCommunicationMutex = Mutex()
 
-    private val mRequestData16Runnable = object : Runnable {
-        override fun run() {
-            requestData16()
-            if (mIsConnected) {
-                mHandler.postDelayed(this, DELAY_REQUEST_DATA)
+    private fun connectInternal(device: UsbDevice?) {
+        mScope.launch {
+            try {
+                disconnectInternal()
+
+                device ?: throw Exception("Null Device")
+
+                val transceiver = UsbTransceiver.create(mUsbManager, device)
+                    ?: throw Exception("Failed to create transceiver.")
+
+                val driver = FtdiDriver(transceiver)
+                if (!driver.initialize()) {
+                    driver.close()
+                    throw Exception("Failed to initialize driver.")
+                }
+
+                val memsProtocol = Mems16Protocol(driver)
+                if (!memsProtocol.initialize()) {
+                    memsProtocol.close()
+                    throw Exception("Failed to initialize protocol.")
+                }
+
+                mMemsProtocol = memsProtocol
+
+                mMainActivity.postMessage(MainActivity.Companion.MessageId.CONNECTED.ordinal)
+
+                requestLiveData()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                handleError()
             }
         }
     }
 
-    init {
-        HandlerThread(TAG).run {
-            start()
-            mHandler = ConnectionManagerHandler(looper)
-        }
+    fun connect(device: UsbDevice?) {
+        connectInternal(device)
     }
 
-    fun postMessage(what: Int = -1, arg1: Int = 0, arg2: Int = 0, obj: Any? = null) {
-        mHandler.obtainMessage(what, arg1, arg2, obj).sendToTarget()
-    }
+    private fun requestLiveData() {
+        mLiveDataJob?.cancel()
+        mLiveDataJob = mScope.launch {
+            while (isActive && isConnected) {
+                mCommunicationMutex.withLock {
+                    val memsProtocol = mMemsProtocol ?: return@withLock
 
-    private fun connect() {
-        val device = mDevice ?: return
-
-        val transceiver = UsbTransceiver.create(mUsbManager, device) ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        val driver = FtdiDriver(transceiver)
-        if (!driver.initialize()) {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        mMemsProtocol = Mems16Protocol(driver)
-        if (mMemsProtocol?.initialize() == false) {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        connected()
-    }
-
-    private fun disconnect() {
-        mMemsProtocol?.close()
-        mMemsProtocol = null
-        disconnected()
-    }
-
-    private fun requestData16() {
-        val memsProtocol = mMemsProtocol ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        val dataPacket = memsProtocol.requestLiveData() ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        mMainActivity.postMessage(
-            what = MainActivity.Companion.MessageId.LIVE_DATA.ordinal,
-            obj = dataPacket
-        )
-    }
-
-    private fun clearFaultCodes() {
-        val memsProtocol = mMemsProtocol ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        if (!memsProtocol.clearFaultCodes()) {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        mMainActivity.postMessage(MainActivity.Companion.MessageId.FAULT_CODES.ordinal)
-    }
-
-    private fun tune() {
-        val memsProtocol = mMemsProtocol ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        val newValue = memsProtocol.performTuning(mTuningButtonId.ordinal) ?: run {
-            postMessage(what = MessageId.DISCONNECT.ordinal)
-            return
-        }
-
-        mMainActivity.postMessage(
-            what = MainActivity.Companion.MessageId.TUNING.ordinal,
-            obj = Pair(mTuningButtonId, newValue)
-        )
-    }
-
-    private fun connected() {
-        mIsConnected = true
-        mMainActivity.postMessage(MainActivity.Companion.MessageId.CONNECTED.ordinal)
-        mHandler.post(mRequestData16Runnable)
-    }
-
-    private fun disconnected() {
-        mIsConnected = false
-        mMainActivity.postMessage(MainActivity.Companion.MessageId.DISCONNECTED.ordinal)
-    }
-
-    private inner class ConnectionManagerHandler(looper: Looper) : Handler(looper) {
-        override fun handleMessage(message: Message) {
-            when (message.what) {
-                MessageId.CONNECT.ordinal -> {
-                    mDevice = message.obj as UsbDevice?
-                    mHandler.post(mConnectRunnable)
+                    val dataPacket = memsProtocol.requestLiveData()
+                    if (dataPacket != null) {
+                        mMainActivity.postMessage(
+                            what = MainActivity.Companion.MessageId.LIVE_DATA.ordinal,
+                            obj = dataPacket
+                        )
+                    } else {
+                        handleError()
+                    }
                 }
 
-                MessageId.DISCONNECT.ordinal -> {
-                    mHandler.removeCallbacksAndMessages(null)
-                    mHandler.post(mDisconnectRunnable)
-                }
+                delay(timeMillis = DELAY_REQUEST_DATA)
+            }
+        }
+    }
 
-                MessageId.CLEAR_FAULT_CODES.ordinal -> {
-                    mHandler.post(mClearFaultCodesRunnable)
-                }
+    fun clearFaultCodes() {
+        mScope.launch {
+            if (!isConnected) {
+                return@launch
+            }
 
-                MessageId.PERFORM_TUNING.ordinal -> {
-                    mTuningButtonId = message.obj as TuningButtonId
-                    mHandler.post(mTuningRunnable)
+            mCommunicationMutex.withLock {
+                val memsProtocol = mMemsProtocol ?: return@withLock
+
+                if (memsProtocol.clearFaultCodes()) {
+                    mMainActivity.postMessage(MainActivity.Companion.MessageId.FAULT_CODES.ordinal)
+                } else {
+                    handleError()
                 }
             }
         }
+    }
+
+    fun performTuning(buttonId: TuningButtonId) {
+        mScope.launch {
+            if (!isConnected) {
+                return@launch
+            }
+
+            mCommunicationMutex.withLock {
+                val memsProtocol = mMemsProtocol ?: return@withLock
+
+                val newValue = memsProtocol.performTuning(buttonId.ordinal)
+                if (newValue != null) {
+                    mMainActivity.postMessage(
+                        what = MainActivity.Companion.MessageId.TUNING.ordinal,
+                        obj = Pair(buttonId, newValue)
+                    )
+                } else {
+                    handleError()
+                }
+            }
+        }
+    }
+
+    private suspend fun disconnectInternal() {
+        mCommunicationMutex.withLock {
+            mLiveDataJob?.cancel()
+            mMemsProtocol?.close()
+            mMemsProtocol = null
+            mMainActivity.postMessage(MainActivity.Companion.MessageId.DISCONNECTED.ordinal)
+        }
+    }
+
+    fun disconnect() {
+        mScope.launch {
+            disconnectInternal()
+        }
+    }
+
+    private fun handleError() {
+        if (!isConnected) {
+            return
+        }
+
+        mScope.launch {
+            disconnectInternal()
+        }
+    }
+
+    fun release() {
+        mScope.cancel()
+        mCommunicationDispatcher.close()
     }
 }

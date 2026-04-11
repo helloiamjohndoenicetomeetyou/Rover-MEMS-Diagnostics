@@ -169,27 +169,22 @@ class MainActivity : ComponentActivity() {
         }
 
         viewModel.onDisconnectRequested = {
-            mCommunicationManager.postMessage(
-                what = CommunicationManager.Companion.MessageId.DISCONNECT.ordinal
-            )
+            mCommunicationManager.disconnect()
         }
 
         viewModel.onClearFaultCodesRequested = {
-            mCommunicationManager.postMessage(
-                what = CommunicationManager.Companion.MessageId.CLEAR_FAULT_CODES.ordinal
-            )
+            mCommunicationManager.clearFaultCodes()
         }
 
         viewModel.onPerformTuningRequested = { buttonId ->
-            mCommunicationManager.postMessage(
-                what = CommunicationManager.Companion.MessageId.PERFORM_TUNING.ordinal,
-                obj = buttonId
-            )
+            mCommunicationManager.performTuning(buttonId)
         }
     }
 
     override fun onDestroy() {
         unregisterReceiver(mBroadcastReceiver)
+
+        mCommunicationManager.release()
 
         super.onDestroy()
     }
@@ -240,10 +235,7 @@ class MainActivity : ComponentActivity() {
      * @see mBroadcastReceiver
      */
     private fun connect() {
-        mCommunicationManager.postMessage(
-            what = CommunicationManager.Companion.MessageId.CONNECT.ordinal,
-            obj = mDevice
-        )
+        mCommunicationManager.connect(mDevice)
     }
 
     /**
