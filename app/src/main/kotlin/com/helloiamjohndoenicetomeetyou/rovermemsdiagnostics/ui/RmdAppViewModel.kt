@@ -15,8 +15,13 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Context
+import android.hardware.usb.UsbDevice
+import android.hardware.usb.UsbManager
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.CommunicationManager
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import kotlinx.coroutines.channels.Channel
@@ -27,7 +32,26 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class RmdAppViewModel : ViewModel() {
+class RmdAppViewModel(application: Application) : AndroidViewModel(application = application) {
+    private val usbManager: UsbManager =
+        application.getSystemService(Context.USB_SERVICE) as UsbManager
+
+    private val communicationManager = CommunicationManager(
+        usbManager = usbManager,
+        onStatusChanged = { state ->
+            setIsConnected(state)
+        },
+        onLiveDataReceived = { data ->
+            onLiveDataReceived(data)
+        },
+        onFaultCodesCleared = { result ->
+            onFaultCodesCleared(result)
+        },
+        onTuningPerformed = { data ->
+            onTuningPerformed(data)
+        }
+    )
+
     private val _uiState = MutableStateFlow(RmdAppState())
 
     val uiState: StateFlow<RmdAppState> = _uiState.asStateFlow()
@@ -40,6 +64,12 @@ class RmdAppViewModel : ViewModel() {
 
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
+    override fun onCleared() {
+        super.onCleared()
+
+        communicationManager.release()
+    }
+
     fun setIsConnected(isConnected: Boolean) {
         _isConnected.value = isConnected
     }
@@ -50,16 +80,16 @@ class RmdAppViewModel : ViewModel() {
         onConnectRequested?.invoke()
     }
 
-    var onDisconnectRequested: (() -> Unit)? = null
-
-    fun requestDisconnect() {
-        onDisconnectRequested?.invoke()
+    fun connect(device: UsbDevice?) {
+        communicationManager.connect(device)
     }
 
-    var onClearFaultCodesRequested: (() -> Unit)? = null
+    fun disconnect() {
+        communicationManager.disconnect()
+    }
 
     fun requestClearFaultCodes() {
-        onClearFaultCodesRequested?.invoke()
+        communicationManager.clearFaultCodes()
     }
 
     /**
@@ -99,35 +129,38 @@ class RmdAppViewModel : ViewModel() {
         }
     }
 
-    var onPerformTuningRequested: ((TuningButtonId) -> Unit)? = null
+    fun onFaultCodesCleared(result: Boolean) {
+        if (result) {
+            showSnackbar("Fault codes cleared successfully.")
+        }
+    }
 
     fun performTuning(buttonId: TuningButtonId) {
-        onPerformTuningRequested?.invoke(buttonId)
+        communicationManager.performTuning(buttonId)
     }
 
     /**
      * Called when the tuning value is changed.
-     * @param buttonId The ID of the Button that was clicked.
-     * @param value The new value of the Tuning.
+     * @param data A [DataPacket] containing the tuning value.
      */
-    fun onTuningValueChanged(buttonId: TuningButtonId, value: String) {
+    fun onTuningPerformed(data: DataPacket) {
         _uiState.update {
-            when (buttonId) {
+            when (data.tuningButtonId) {
                 TuningButtonId.INCREMENT_IGNITION_TIMING,
                 TuningButtonId.DECREMENT_IGNITION_TIMING ->
-                    it.copy(tuningIgnitionTiming = value)
+                    it.copy(tuningIgnitionTiming = data.tunedValue)
 
                 TuningButtonId.INCREMENT_IDLE_SPEED,
                 TuningButtonId.DECREMENT_IDLE_SPEED ->
-                    it.copy(tuningIdleSpeed = value)
+                    it.copy(tuningIdleSpeed = data.tunedValue)
 
                 TuningButtonId.INCREMENT_IDLE_DECAY,
                 TuningButtonId.DECREMENT_IDLE_DECAY ->
-                    it.copy(tuningIdleDecay = value)
+                    it.copy(tuningIdleDecay = data.tunedValue)
 
                 TuningButtonId.INCREMENT_FUEL_TRIM,
                 TuningButtonId.DECREMENT_FUEL_TRIM ->
-                    it.copy(tuningFuelTrim = value)
+                    it.copy(tuningFuelTrim = data.tunedValue)
 
                 TuningButtonId.RESET_TUNING ->
                     it.copy(
@@ -139,7 +172,7 @@ class RmdAppViewModel : ViewModel() {
             }
         }
 
-        if (buttonId == TuningButtonId.RESET_TUNING) {
+        if (data.tuningButtonId == TuningButtonId.RESET_TUNING) {
             showSnackbar("Resetting tuning successfully completed.")
         }
     }

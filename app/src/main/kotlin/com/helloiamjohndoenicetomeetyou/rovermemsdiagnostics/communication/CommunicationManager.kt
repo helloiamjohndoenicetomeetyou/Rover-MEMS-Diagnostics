@@ -17,7 +17,6 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.MainActivity
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocol
@@ -36,8 +35,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class CommunicationManager(
-    private val mMainActivity: MainActivity,
-    private val mUsbManager: UsbManager
+    private val usbManager: UsbManager,
+    private val onStatusChanged: (isConnected: Boolean) -> Unit,
+    private val onLiveDataReceived: (data: DataPacket) -> Unit,
+    private val onFaultCodesCleared: (result: Boolean) -> Unit,
+    private val onTuningPerformed: (data: DataPacket) -> Unit
 ) {
     companion object {
         // private const val LIB_USB_ENDPOINT_IN: Int = 0x80
@@ -76,7 +78,7 @@ class CommunicationManager(
 
                 device ?: throw Exception("Null Device")
 
-                val transceiver = UsbTransceiver.create(mUsbManager, device)
+                val transceiver = UsbTransceiver.create(usbManager, device)
                     ?: throw Exception("Failed to create transceiver.")
 
                 val driver = FtdiDriver(transceiver)
@@ -93,7 +95,7 @@ class CommunicationManager(
 
                 mMemsProtocol = memsProtocol
 
-                mMainActivity.postMessage(MainActivity.Companion.MessageId.CONNECTED.ordinal)
+                onStatusChanged(isConnected)
 
                 requestLiveData()
             } catch (e: Exception) {
@@ -114,12 +116,9 @@ class CommunicationManager(
                 mCommunicationMutex.withLock {
                     val memsProtocol = mMemsProtocol ?: return@withLock
 
-                    val dataPacket = memsProtocol.requestLiveData()
-                    if (dataPacket != null) {
-                        mMainActivity.postMessage(
-                            what = MainActivity.Companion.MessageId.LIVE_DATA.ordinal,
-                            obj = dataPacket
-                        )
+                    val data = memsProtocol.requestLiveData()
+                    if (data != null) {
+                        onLiveDataReceived(data)
                     } else {
                         handleError()
                     }
@@ -140,7 +139,7 @@ class CommunicationManager(
                 val memsProtocol = mMemsProtocol ?: return@withLock
 
                 if (memsProtocol.clearFaultCodes()) {
-                    mMainActivity.postMessage(MainActivity.Companion.MessageId.FAULT_CODES.ordinal)
+                    onFaultCodesCleared(true)
                 } else {
                     handleError()
                 }
@@ -157,12 +156,9 @@ class CommunicationManager(
             mCommunicationMutex.withLock {
                 val memsProtocol = mMemsProtocol ?: return@withLock
 
-                val newValue = memsProtocol.performTuning(buttonId.ordinal)
-                if (newValue != null) {
-                    mMainActivity.postMessage(
-                        what = MainActivity.Companion.MessageId.TUNING.ordinal,
-                        obj = Pair(buttonId, newValue)
-                    )
+                val data = memsProtocol.performTuning(buttonId)
+                if (data != null) {
+                    onTuningPerformed(data)
                 } else {
                     handleError()
                 }
@@ -175,7 +171,7 @@ class CommunicationManager(
             mLiveDataJob?.cancel()
             mMemsProtocol?.close()
             mMemsProtocol = null
-            mMainActivity.postMessage(MainActivity.Companion.MessageId.DISCONNECTED.ordinal)
+            onStatusChanged(isConnected)
         }
     }
 

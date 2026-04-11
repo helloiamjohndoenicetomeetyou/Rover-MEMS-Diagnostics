@@ -95,14 +95,14 @@ class Mems16Protocol(private val mDriver: DeviceDriver) : MemsProtocol {
     override fun clearFaultCodes(): Boolean =
         sendCommand(COMMAND_CLEAR_FAULT_CODES, ByteArray(SIZE_BUFFER))
 
-    override fun performTuning(item: Int): String? {
+    override fun performTuning(buttonId: TuningButtonId): DataPacket? {
         val bytes = ByteArray(SIZE_BUFFER)
 
-        if (!sendCommand(getTuningCommand(item), bytes)) {
+        if (!sendCommand(getTuningCommand(buttonId.ordinal), bytes)) {
             return null
         }
 
-        return bytes[2].toHexStringRmd()
+        return DataPacket(tuningButtonId = buttonId, tunedValue = bytes[2].toHexStringRmd())
     }
 
     override fun close() = mDriver.close()

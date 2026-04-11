@@ -15,6 +15,8 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
+
 class DataPacket(
     val engineSpeed: String = "",
 
@@ -74,7 +76,11 @@ class DataPacket(
 
     val shortTermFuelTrim: String = "",
 
-    val idleBasePosition: String = ""
+    val idleBasePosition: String = "",
+
+    val tuningButtonId: TuningButtonId = TuningButtonId.RESET_TUNING,
+
+    val tunedValue: String = ""
 ) {
     companion object {
         const val IDLE = "Idle"

@@ -25,83 +25,28 @@ import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.core.content.ContextCompat
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.CommunicationManager
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
+import androidx.core.content.IntentCompat
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.NotSupportedDialog
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
-import java.lang.ref.WeakReference
 
 class MainActivity : ComponentActivity() {
     companion object {
-        enum class MessageId {
-            HOME,
-            CONNECTED,
-            DISCONNECTED,
-            LIVE_DATA,
-            FAULT_CODES,
-            TUNING
-        }
-
         private const val VENDOR_ID_FTDI = 0x0403
 
         private const val PRODUCT_ID_FTDI_FT232R = 0x6001
 
         private const val ACTION_USB_PERMISSION =
             "com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.USB_PERMISSION"
-
-        private class MainActivityHandler(looper: Looper, mainActivity: MainActivity) :
-            Handler(looper) {
-            private val mMainActivityWeakReference = WeakReference(mainActivity)
-
-            override fun handleMessage(message: Message) {
-                val mainActivity = mMainActivityWeakReference.get() ?: return
-                when (message.what) {
-                    MessageId.HOME.ordinal -> {
-                        // Nothing to do.
-                    }
-
-                    MessageId.CONNECTED.ordinal -> {
-                        mainActivity.viewModel.setIsConnected(true)
-                    }
-
-                    MessageId.DISCONNECTED.ordinal -> {
-                        mainActivity.viewModel.setIsConnected(false)
-                    }
-
-                    MessageId.LIVE_DATA.ordinal -> {
-                        mainActivity.updateLiveData(message.obj)
-                    }
-
-                    MessageId.FAULT_CODES.ordinal -> {
-                        mainActivity.showSnackBar("Clearing fault codes successfully completed.")
-                    }
-
-                    MessageId.TUNING.ordinal -> {
-                        mainActivity.updateTuning(message.obj)
-                    }
-                }
-            }
-        }
     }
 
     private lateinit var mUsbManager: UsbManager
-
-    private lateinit var mHandler: MainActivityHandler
-
-    private lateinit var mCommunicationManager: CommunicationManager
-
-    private var mDevice: UsbDevice? = null
 
     private val viewModel: RmdAppViewModel by viewModels()
 
@@ -111,7 +56,11 @@ class MainActivity : ComponentActivity() {
                 synchronized(this@MainActivity) {
                     if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
                         showSnackBar("USB Permission granted.")
-                        connect()
+                        val device = IntentCompat.getParcelableExtra(
+                            intent, UsbManager.EXTRA_DEVICE,
+                            UsbDevice::class.java
+                        )
+                        connect(device)
                     } else {
                         showSnackBar("USB Permission denied.")
                         return
@@ -131,10 +80,6 @@ class MainActivity : ComponentActivity() {
         val isUsbHostSupported = packageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
 
         mUsbManager = getSystemService(USB_SERVICE) as UsbManager
-
-        mHandler = MainActivityHandler(Looper.getMainLooper(), this)
-
-        mCommunicationManager = CommunicationManager(this, mUsbManager)
 
         val intentFilter = IntentFilter()
         intentFilter.addAction(ACTION_USB_PERMISSION)
@@ -164,33 +109,16 @@ class MainActivity : ComponentActivity() {
         }
 
         viewModel.onConnectRequested = {
+
             // Get USB permission before connecting.
             requestUsbPermission()
-        }
-
-        viewModel.onDisconnectRequested = {
-            mCommunicationManager.disconnect()
-        }
-
-        viewModel.onClearFaultCodesRequested = {
-            mCommunicationManager.clearFaultCodes()
-        }
-
-        viewModel.onPerformTuningRequested = { buttonId ->
-            mCommunicationManager.performTuning(buttonId)
         }
     }
 
     override fun onDestroy() {
         unregisterReceiver(mBroadcastReceiver)
 
-        mCommunicationManager.release()
-
         super.onDestroy()
-    }
-
-    fun postMessage(what: Int = -1, arg1: Int = 0, arg2: Int = 0, obj: Any? = null) {
-        mHandler.obtainMessage(what, arg1, arg2, obj).sendToTarget()
     }
 
     /**
@@ -209,12 +137,10 @@ class MainActivity : ComponentActivity() {
 
         val device = list.values.toList()[0]
 
-        if ((device.vendorId != VENDOR_ID_FTDI) && (device.productId != PRODUCT_ID_FTDI_FT232R)) {
+        if ((device.vendorId != VENDOR_ID_FTDI) || (device.productId != PRODUCT_ID_FTDI_FT232R)) {
             disconnected()
             return
         }
-
-        mDevice = device
 
         val permissionIntent = Intent(ACTION_USB_PERMISSION).apply {
             `package` = packageName
@@ -234,32 +160,15 @@ class MainActivity : ComponentActivity() {
      * Attempts to connect to the ECU once USB permission is granted.
      * @see mBroadcastReceiver
      */
-    private fun connect() {
-        mCommunicationManager.connect(mDevice)
+    private fun connect(device: UsbDevice?) {
+        viewModel.connect(device)
     }
 
     /**
      * Sets the UI to disconnected state.
      */
     private fun disconnected() {
-        postMessage(what = MessageId.DISCONNECTED.ordinal)
-    }
-
-    /**
-     * Updates the UI, Live Data Section and Fault Codes Section.
-     */
-    private fun updateLiveData(obj: Any?) {
-        (obj as? DataPacket)?.let { dataPacket ->
-            viewModel.onLiveDataReceived(dataPacket)
-        }
-    }
-
-    private fun updateTuning(obj: Any?) {
-        (obj as? Pair<*, *>)?.run {
-            val buttonId = first as? TuningButtonId ?: return
-            val value = second as? String ?: return
-            viewModel.onTuningValueChanged(buttonId, value)
-        }
+        viewModel.setIsConnected(false)
     }
 
     /**

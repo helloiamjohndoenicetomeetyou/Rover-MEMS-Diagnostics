@@ -16,6 +16,7 @@
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol
 
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 
 /**
  * Interface for MEMS protocols.
@@ -27,7 +28,7 @@ interface MemsProtocol {
 
     fun clearFaultCodes(): Boolean
 
-    fun performTuning(item: Int): Any?
+    fun performTuning(buttonId: TuningButtonId): DataPacket?
 
     fun close()
 }

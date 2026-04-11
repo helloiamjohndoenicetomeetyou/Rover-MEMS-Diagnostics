@@ -117,7 +117,7 @@ fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
                             if (it) {
                                 viewModel.requestConnect()
                             } else {
-                                viewModel.requestDisconnect()
+                                viewModel.disconnect()
                             }
                         }
                     )
