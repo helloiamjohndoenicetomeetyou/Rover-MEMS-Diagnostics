@@ -32,9 +32,13 @@ import androidx.activity.viewModels
 import androidx.compose.material3.MaterialTheme
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.NotSupportedDialog
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -92,6 +96,14 @@ class MainActivity : ComponentActivity() {
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.requestConnectEvent.collect {
+                    requestUsbPermission()
+                }
+            }
+        }
+
         enableEdgeToEdge()
 
         setContent {
@@ -106,12 +118,6 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
-        }
-
-        viewModel.onConnectRequested = {
-
-            // Get USB permission before connecting.
-            requestUsbPermission()
         }
     }
 

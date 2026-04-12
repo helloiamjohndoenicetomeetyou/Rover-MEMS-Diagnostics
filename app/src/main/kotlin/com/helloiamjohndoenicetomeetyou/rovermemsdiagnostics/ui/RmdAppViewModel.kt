@@ -25,8 +25,11 @@ import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.Commu
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -64,6 +67,10 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
 
     val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
+    private val _requestConnectEvent = MutableSharedFlow<Unit>()
+
+    val requestConnectEvent: SharedFlow<Unit> = _requestConnectEvent.asSharedFlow()
+
     override fun onCleared() {
         super.onCleared()
 
@@ -74,10 +81,10 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         _isConnected.value = isConnected
     }
 
-    var onConnectRequested: (() -> Unit)? = null
-
     fun requestConnect() {
-        onConnectRequested?.invoke()
+        viewModelScope.launch {
+            _requestConnectEvent.emit(Unit)
+        }
     }
 
     fun connect(device: UsbDevice?) {
