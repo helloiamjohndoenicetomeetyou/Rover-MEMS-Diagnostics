@@ -191,7 +191,12 @@ class CommunicationManager(
         }
     }
 
+    /**
+     * Called when the ViewModel is cleared.
+     */
     fun release() {
+        memsProtocol?.close()
+        memsProtocol = null
         coroutineScope.cancel()
         communicationDispatcher.close()
     }
