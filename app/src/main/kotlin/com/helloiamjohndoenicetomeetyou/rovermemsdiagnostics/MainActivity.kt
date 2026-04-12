@@ -133,15 +133,11 @@ class MainActivity : ComponentActivity() {
     private fun requestUsbPermission() {
         val usbManager = getSystemService(USB_SERVICE) as UsbManager
 
-        val list = usbManager.deviceList
-        if (list.size != 1) {
-            disconnected()
-            return
+        val device = usbManager.deviceList.values.firstOrNull { device ->
+            device.vendorId == VENDOR_ID_FTDI && device.productId == PRODUCT_ID_FTDI_FT232R
         }
 
-        val device = list.values.toList()[0]
-
-        if ((device.vendorId != VENDOR_ID_FTDI) || (device.productId != PRODUCT_ID_FTDI_FT232R)) {
+        device ?: run {
             disconnected()
             return
         }
