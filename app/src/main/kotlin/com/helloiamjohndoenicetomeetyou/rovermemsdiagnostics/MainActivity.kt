@@ -50,8 +50,6 @@ class MainActivity : ComponentActivity() {
             "com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.USB_PERMISSION"
     }
 
-    private lateinit var mUsbManager: UsbManager
-
     private val viewModel: RmdAppViewModel by viewModels()
 
     private val mBroadcastReceiver = object : BroadcastReceiver() {
@@ -82,8 +80,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         val isUsbHostSupported = packageManager.hasSystemFeature(PackageManager.FEATURE_USB_HOST)
-
-        mUsbManager = getSystemService(USB_SERVICE) as UsbManager
 
         val intentFilter = IntentFilter()
         intentFilter.addAction(ACTION_USB_PERMISSION)
@@ -131,7 +127,8 @@ class MainActivity : ComponentActivity() {
      * Prompts for USB permission before connecting.
      */
     private fun requestUsbPermission() {
-        val list = mUsbManager.deviceList ?: run {
+        val usbManager = getSystemService(USB_SERVICE) as UsbManager
+        val list = usbManager.deviceList ?: run {
             disconnected()
             return
         }
@@ -159,7 +156,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val pendingIntent = PendingIntent.getBroadcast(this, 0, permissionIntent, flags)
-        mUsbManager.requestPermission(device, pendingIntent)
+        usbManager.requestPermission(device, pendingIntent)
     }
 
     /**
