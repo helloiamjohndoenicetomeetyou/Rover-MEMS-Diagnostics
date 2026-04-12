@@ -77,8 +77,14 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         communicationManager.release()
     }
 
-    fun setIsConnected(isConnected: Boolean) {
-        _isConnected.value = isConnected
+    fun setIsConnected(newStatus: Boolean) {
+        _isConnected.update {
+            newStatus
+        }
+
+        if (newStatus) {
+            _uiState.value = RmdAppState()
+        }
     }
 
     fun requestConnect() {

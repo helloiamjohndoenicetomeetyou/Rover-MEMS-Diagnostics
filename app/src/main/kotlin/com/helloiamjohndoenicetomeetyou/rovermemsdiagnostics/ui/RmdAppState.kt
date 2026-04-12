@@ -30,12 +30,6 @@ data class RmdAppState(
     val fuelTrimLoopOperation: String = "-",
     val shortTermFuelTrim: String = "-",
 
-    val crankshaftAngleSensorFault: String = "-",
-    val throttlePotentiometerFault: String = "-",
-    val manifoldAbsolutePressureSensorFault: String = "-",
-    val waterTemperatureSensorFault: String = "-",
-    val intakeAirTemperatureSensorFault: String = "-",
-
     val coolerSwitch: String = "-",
     val idleSetPoint: String = "-",
     val hotIdlePosition: String = "-",
@@ -43,6 +37,12 @@ data class RmdAppState(
     val ignitionTimingOffset: String = "-",
     val ignitionTiming: String = "-",
     val ignitionCoilDwellTime: String = "-",
+
+    val crankshaftAngleSensorFault: String = "-",
+    val throttlePotentiometerFault: String = "-",
+    val manifoldAbsolutePressureSensorFault: String = "-",
+    val waterTemperatureSensorFault: String = "-",
+    val intakeAirTemperatureSensorFault: String = "-",
 
     val tuningIgnitionTiming: String = "-",
     val tuningIdleSpeed: String = "-",
