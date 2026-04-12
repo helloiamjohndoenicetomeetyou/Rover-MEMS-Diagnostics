@@ -23,10 +23,10 @@ import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
 
 class UsbTransceiver private constructor(
-    private val mInterface: UsbInterface,
-    private val mConnection: UsbDeviceConnection,
-    private val mEndpointIn: UsbEndpoint,
-    private val mEndpointOut: UsbEndpoint
+    private val usbInterface: UsbInterface,
+    private val usbDeviceConnection: UsbDeviceConnection,
+    private val usbEndpointIn: UsbEndpoint,
+    private val usbEndpointOut: UsbEndpoint
 ) : Transceiver {
     companion object {
         private const val TIMEOUT_CONTROL_MS = 5000
@@ -35,9 +35,9 @@ class UsbTransceiver private constructor(
 
         fun create(usbManager: UsbManager, usbDevice: UsbDevice): UsbTransceiver? {
             val connection = usbManager.openDevice(usbDevice) ?: return null
-            val usbInterface = usbDevice.getInterface(0)
+            val interface0 = usbDevice.getInterface(0)
 
-            if (!connection.claimInterface(usbInterface, /* force = */ true)) {
+            if (!connection.claimInterface(interface0, /* force = */ true)) {
                 connection.close()
                 return null
             }
@@ -45,8 +45,8 @@ class UsbTransceiver private constructor(
             var endpointIn: UsbEndpoint? = null
             var endpointOut: UsbEndpoint? = null
 
-            for (i in 0 until usbInterface.endpointCount) {
-                val endpoint = usbInterface.getEndpoint(i)
+            for (i in 0 until interface0.endpointCount) {
+                val endpoint = interface0.getEndpoint(i)
 
                 when {
                     endpointIn == null && endpoint.direction == UsbConstants.USB_DIR_IN -> {
@@ -64,17 +64,17 @@ class UsbTransceiver private constructor(
             }
 
             if (endpointIn == null || endpointOut == null) {
-                connection.releaseInterface(usbInterface)
+                connection.releaseInterface(interface0)
                 connection.close()
                 return null
             }
 
-            return UsbTransceiver(usbInterface, connection, endpointIn, endpointOut)
+            return UsbTransceiver(interface0, connection, endpointIn, endpointOut)
         }
     }
 
     override fun read(bytes: ByteArray): Int =
-        mConnection.bulkTransfer(mEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
+        usbDeviceConnection.bulkTransfer(usbEndpointIn, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
 
     /**
      * Sends the provided ByteArray.
@@ -82,11 +82,16 @@ class UsbTransceiver private constructor(
      * @param bytes ByteArray to write.
      */
     override fun write(bytes: ByteArray): Int =
-        mConnection.bulkTransfer(mEndpointOut, bytes, bytes.size, TIMEOUT_BULK_TRANSFER_MS)
+        usbDeviceConnection.bulkTransfer(
+            usbEndpointOut,
+            bytes,
+            bytes.size,
+            TIMEOUT_BULK_TRANSFER_MS
+        )
 
     override fun close() {
-        mConnection.releaseInterface(mInterface)
-        mConnection.close()
+        usbDeviceConnection.releaseInterface(usbInterface)
+        usbDeviceConnection.close()
     }
 
     fun controlTransfer(
@@ -97,7 +102,7 @@ class UsbTransceiver private constructor(
         buffer: ByteArray? = null,
         length: Int = 0,
         timeout: Int = TIMEOUT_CONTROL_MS
-    ): Int = mConnection.controlTransfer(
+    ): Int = usbDeviceConnection.controlTransfer(
         requestType,
         request,
         value,

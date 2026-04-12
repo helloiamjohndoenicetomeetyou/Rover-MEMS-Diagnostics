@@ -18,7 +18,7 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driv
 import android.hardware.usb.UsbConstants
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 
-class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
+class FtdiDriver(private val usbTransceiver: UsbTransceiver) : DeviceDriver {
     companion object {
         private const val USB_RECIPIENT_DEVICE = 0x00
 
@@ -92,11 +92,11 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
      */
     override fun read(bytes: ByteArray): Boolean {
         var cursor = 0
-        val response = ByteArray(SIZE_READ_BUFFER)
+        val responseBytes = ByteArray(SIZE_READ_BUFFER)
         val startTime = System.currentTimeMillis()
 
         do {
-            val result = mUsbTransceiver.read(response)
+            val result = usbTransceiver.read(responseBytes)
 
             if (result < 0) {
                 return false
@@ -108,7 +108,7 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
 
             for (i in SIZE_FTDI_HEADER until result) {
                 if (cursor < bytes.size - 1) {
-                    bytes[++cursor] = response[i]
+                    bytes[++cursor] = responseBytes[i]
                 } else {
                     return false
                 }
@@ -118,7 +118,7 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
                 return false
             }
 
-            response.fill(0)
+            responseBytes.fill(0)
         } while (true)
 
         bytes[0] = cursor.toByte()
@@ -126,12 +126,12 @@ class FtdiDriver(private val mUsbTransceiver: UsbTransceiver) : DeviceDriver {
         return true
     }
 
-    override fun write(bytes: ByteArray): Boolean = 0 < mUsbTransceiver.write(bytes)
+    override fun write(bytes: ByteArray): Boolean = 0 < usbTransceiver.write(bytes)
 
-    override fun close() = mUsbTransceiver.close()
+    override fun close() = usbTransceiver.close()
 
     private fun controlTransfer(request: Int, value: Int): Int =
-        mUsbTransceiver.controlTransfer(
+        usbTransceiver.controlTransfer(
             requestType = REQUEST_TYPE_OUT,
             request = request,
             value = value

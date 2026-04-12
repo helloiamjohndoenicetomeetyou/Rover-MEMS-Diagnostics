@@ -30,7 +30,7 @@ import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.drive
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.utilities.toHexStringRmd
 
-class Mems16Protocol(private val mDriver: DeviceDriver) : MemsProtocol {
+class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
     companion object {
         private val COMMAND_INITIALIZE_ECU_16 =
             byteArrayOf(0xCA.toByte(), 0x75.toByte(), 0xD0.toByte())
@@ -105,15 +105,15 @@ class Mems16Protocol(private val mDriver: DeviceDriver) : MemsProtocol {
         return DataPacket(tuningButtonId = buttonId, tunedValue = bytes[2].toHexStringRmd())
     }
 
-    override fun close() = mDriver.close()
+    override fun close() = deviceDriver.close()
 
     private fun sendCommand(command: ByteArray, bytes: ByteArray): Boolean {
         command.forEach { byte ->
-            if (!mDriver.write(byteArrayOf(byte))) {
+            if (!deviceDriver.write(byteArrayOf(byte))) {
                 return false
             }
 
-            if (!mDriver.read(bytes)) {
+            if (!deviceDriver.read(bytes)) {
                 return false
             }
         }

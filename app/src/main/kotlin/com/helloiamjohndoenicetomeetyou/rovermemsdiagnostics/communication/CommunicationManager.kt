@@ -58,21 +58,21 @@ class CommunicationManager(
         private const val DELAY_REQUEST_DATA = 500L
     }
 
-    val isConnected: Boolean get() = mMemsProtocol != null
+    private var memsProtocol: MemsProtocol? = null
 
-    private var mMemsProtocol: MemsProtocol? = null
+    private var liveDataJob: Job? = null
 
-    private var mLiveDataJob: Job? = null
+    private val isConnected: Boolean get() = memsProtocol != null
 
-    private val mCommunicationDispatcher =
+    private val communicationDispatcher =
         Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
-    private val mScope = CoroutineScope(mCommunicationDispatcher + SupervisorJob())
+    private val coroutineScope = CoroutineScope(communicationDispatcher + SupervisorJob())
 
-    private val mCommunicationMutex = Mutex()
+    private val communicationMutex = Mutex()
 
     private fun connectInternal(device: UsbDevice?) {
-        mScope.launch {
+        coroutineScope.launch {
             try {
                 disconnectInternal()
 
@@ -87,13 +87,13 @@ class CommunicationManager(
                     throw Exception("Failed to initialize driver.")
                 }
 
-                val memsProtocol = Mems16Protocol(driver)
-                if (!memsProtocol.initialize()) {
-                    memsProtocol.close()
+                val protocol = Mems16Protocol(driver)
+                if (!protocol.initialize()) {
+                    protocol.close()
                     throw Exception("Failed to initialize protocol.")
                 }
 
-                mMemsProtocol = memsProtocol
+                memsProtocol = protocol
 
                 onStatusChanged(isConnected)
 
@@ -110,13 +110,13 @@ class CommunicationManager(
     }
 
     private fun requestLiveData() {
-        mLiveDataJob?.cancel()
-        mLiveDataJob = mScope.launch {
+        liveDataJob?.cancel()
+        liveDataJob = coroutineScope.launch {
             while (isActive && isConnected) {
-                mCommunicationMutex.withLock {
-                    val memsProtocol = mMemsProtocol ?: return@withLock
+                communicationMutex.withLock {
+                    val protocol = memsProtocol ?: return@withLock
 
-                    val data = memsProtocol.requestLiveData()
+                    val data = protocol.requestLiveData()
                     if (data != null) {
                         onLiveDataReceived(data)
                     } else {
@@ -130,15 +130,15 @@ class CommunicationManager(
     }
 
     fun clearFaultCodes() {
-        mScope.launch {
+        coroutineScope.launch {
             if (!isConnected) {
                 return@launch
             }
 
-            mCommunicationMutex.withLock {
-                val memsProtocol = mMemsProtocol ?: return@withLock
+            communicationMutex.withLock {
+                val protocol = memsProtocol ?: return@withLock
 
-                if (memsProtocol.clearFaultCodes()) {
+                if (protocol.clearFaultCodes()) {
                     onFaultCodesCleared(true)
                 } else {
                     handleError()
@@ -148,15 +148,15 @@ class CommunicationManager(
     }
 
     fun performTuning(buttonId: TuningButtonId) {
-        mScope.launch {
+        coroutineScope.launch {
             if (!isConnected) {
                 return@launch
             }
 
-            mCommunicationMutex.withLock {
-                val memsProtocol = mMemsProtocol ?: return@withLock
+            communicationMutex.withLock {
+                val protocol = memsProtocol ?: return@withLock
 
-                val data = memsProtocol.performTuning(buttonId)
+                val data = protocol.performTuning(buttonId)
                 if (data != null) {
                     onTuningPerformed(data)
                 } else {
@@ -167,16 +167,16 @@ class CommunicationManager(
     }
 
     private suspend fun disconnectInternal() {
-        mCommunicationMutex.withLock {
-            mLiveDataJob?.cancel()
-            mMemsProtocol?.close()
-            mMemsProtocol = null
+        communicationMutex.withLock {
+            liveDataJob?.cancel()
+            memsProtocol?.close()
+            memsProtocol = null
             onStatusChanged(isConnected)
         }
     }
 
     fun disconnect() {
-        mScope.launch {
+        coroutineScope.launch {
             disconnectInternal()
         }
     }
@@ -186,13 +186,13 @@ class CommunicationManager(
             return
         }
 
-        mScope.launch {
+        coroutineScope.launch {
             disconnectInternal()
         }
     }
 
     fun release() {
-        mScope.cancel()
-        mCommunicationDispatcher.close()
+        coroutineScope.cancel()
+        communicationDispatcher.close()
     }
 }
