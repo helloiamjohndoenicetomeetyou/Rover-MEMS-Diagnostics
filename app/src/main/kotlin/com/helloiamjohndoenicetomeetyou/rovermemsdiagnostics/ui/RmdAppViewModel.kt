@@ -91,14 +91,6 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         communicationManager.connect(device)
     }
 
-    fun disconnect() {
-        communicationManager.disconnect()
-    }
-
-    fun requestClearFaultCodes() {
-        communicationManager.clearFaultCodes()
-    }
-
     /**
      * Called when LiveData and FaultCodes are received.
      */
@@ -134,6 +126,10 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
                 intakeAirTemperatureSensorFault = data.intakeAirTemperatureSensorFault
             )
         }
+    }
+
+    fun requestClearFaultCodes() {
+        communicationManager.clearFaultCodes()
     }
 
     fun onFaultCodesCleared(result: Boolean) {
@@ -182,6 +178,10 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         if (data.tuningButtonId == TuningButtonId.RESET_TUNING) {
             showSnackbar("Resetting tuning successfully completed.")
         }
+    }
+
+    fun disconnect() {
+        communicationManager.disconnect()
     }
 
     fun showSnackbar(message: String) {
