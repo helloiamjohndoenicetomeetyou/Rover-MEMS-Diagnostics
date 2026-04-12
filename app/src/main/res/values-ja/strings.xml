@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Copyright (C) 2025 helloiamjohndoenicetomeetyou
+    Copyright (C) 2026 helloiamjohndoenicetomeetyou
 
     This program is free software: you can redistribute it and/or modify it under the terms of the
     GNU General Public License as published by the Free Software Foundation, either version 3 of the
@@ -14,6 +14,5 @@
     not, see <https://www.gnu.org/licenses/>.
 -->
 <resources>
-    <string name="application_name" translatable="false">Rover MEMS Diagnostics</string>
-    <string name="application_version">Application Version</string>
+    <string name="application_version">アプリケーションバージョン</string>
 </resources>

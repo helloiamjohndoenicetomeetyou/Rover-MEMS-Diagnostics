@@ -43,12 +43,12 @@ fun AboutDialog(onDismissRequest: () -> Unit) {
         text = {
             Column {
                 Text(
-                    text = stringResource(R.string.app_name) + "\n" +
+                    text = stringResource(R.string.application_name) + "\n" +
                             "\n" +
                             "Supported ECU Version:\n" +
                             "MEMS 1.6\n" +
                             "\n" +
-                            "Application Version:\n" +
+                            stringResource(R.string.application_version) + "\n" +
                             "${BuildConfig.VERSION_NAME}\n",
                     style = MaterialTheme.typography.titleMedium
                 )
