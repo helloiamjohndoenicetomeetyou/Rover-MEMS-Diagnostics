@@ -121,12 +121,17 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
         return true
     }
 
-    private fun parseToDataPacket(bytes80: ByteArray, bytes7D: ByteArray): DataPacket {
+    private fun parseToDataPacket(bytes80: ByteArray, bytes7D: ByteArray): DataPacket? {
         val ints80 = IntArray(bytes80.size)
 
         // bytes80[0]: Total read size
         // bytes80[1]: Echo
         // bytes80[2]: Size of Data Frame 0x80
+        val frameSize80 = bytes80[2].toInt() and 0xFF
+        if (bytes80.size <= frameSize80 + 2) {
+            return null
+        }
+
         for (i in 0..bytes80[2]) {
             ints80[i] = (bytes80[i + 2].toInt() and 0xFF)
         }
@@ -136,6 +141,11 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
         // bytes7D[0]: Total read size
         // bytes7D[1]: Echo
         // bytes7D[2]: Size of Data Frame 0x7D
+        val frameSize7D = bytes7D[2].toInt() and 0xFF
+        if (bytes7D.size <= frameSize7D + 2) {
+            return null
+        }
+
         for (i in 0..bytes7D[2]) {
             ints7D[i] = (bytes7D[i + 2].toInt() and 0xFF)
         }
