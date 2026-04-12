@@ -14,6 +14,10 @@ Version 2026.04.09.20.33
 
 [📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases/download/2026.04.09.20.33/2026.04.09.20.33.apk)
 
+## System Requirements
+* Android Version: Android 8.0 (Oreo) or Later (API Level 26 or Higher)
+* Connectivity: USB OTG Support
+
 ## Supported ECU Version
 * MEMS 1.6 (Commonly found in Classic Mini SPI)
 
