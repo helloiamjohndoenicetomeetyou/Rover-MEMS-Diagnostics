@@ -20,6 +20,7 @@ plugins {
 
 android {
     compileSdk = 36
+    compileSdkMinor = 1
 
     namespace = "com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics"
 
@@ -36,6 +37,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+
+            proguardFile("proguard-android-optimize.txt")
         }
     }
 
@@ -56,6 +59,6 @@ dependencies {
     implementation(libs.org.jetbrains.kotlinx.coroutines.android)
 
     // Android Studio Preview
-    implementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.tooling.preview)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    implementation(libs.androidx.compose.ui.tooling.preview)
 }
