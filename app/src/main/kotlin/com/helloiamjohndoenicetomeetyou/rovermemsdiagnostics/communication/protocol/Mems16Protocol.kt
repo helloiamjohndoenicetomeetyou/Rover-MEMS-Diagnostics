@@ -89,7 +89,7 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
             return null
         }
 
-        return parseToDataPacket(bytes80 = bytes80, bytes7D = bytes7D)
+        return parseLiveData(bytes80 = bytes80, bytes7D = bytes7D)
     }
 
     override fun clearFaultCodes(): Boolean =
@@ -121,7 +121,7 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
         return true
     }
 
-    private fun parseToDataPacket(bytes80: ByteArray, bytes7D: ByteArray): DataPacket? {
+    private fun parseLiveData(bytes80: ByteArray, bytes7D: ByteArray): DataPacket? {
         val ints80 = IntArray(bytes80.size)
 
         // bytes80[0]: Total read size
