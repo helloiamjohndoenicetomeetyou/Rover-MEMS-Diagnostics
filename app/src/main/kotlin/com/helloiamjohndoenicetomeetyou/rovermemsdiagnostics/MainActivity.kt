@@ -46,32 +46,36 @@ class MainActivity : ComponentActivity() {
 
         private const val PRODUCT_ID_FTDI_FT232R = 0x6001
 
-        private const val ACTION_USB_PERMISSION =
-            "com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.USB_PERMISSION"
+        private const val ACTION_USB_PERMISSION: String =
+            BuildConfig.APPLICATION_ID + "USB_PERMISSION"
     }
 
     private val viewModel: RmdAppViewModel by viewModels()
 
-    private val mBroadcastReceiver = object : BroadcastReceiver() {
+    private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == ACTION_USB_PERMISSION) {
-                synchronized(this@MainActivity) {
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        showSnackBar("USB Permission granted.")
-                        val device = IntentCompat.getParcelableExtra(
-                            intent, UsbManager.EXTRA_DEVICE,
-                            UsbDevice::class.java
-                        )
-                        connect(device)
-                    } else {
-                        showSnackBar("USB Permission denied.")
-                        return
+            when (intent.action) {
+                ACTION_USB_PERMISSION -> {
+                    synchronized(this@MainActivity) {
+                        if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                            showSnackBar("USB Permission granted.")
+
+                            val device = IntentCompat.getParcelableExtra(
+                                intent,
+                                UsbManager.EXTRA_DEVICE,
+                                UsbDevice::class.java
+                            )
+                            connect(device)
+                        } else {
+                            showSnackBar("USB Permission denied.")
+                            return
+                        }
                     }
                 }
-            }
 
-            if (intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
-                requestUsbPermission()
+                UsbManager.ACTION_USB_DEVICE_ATTACHED -> {
+                    requestUsbPermission()
+                }
             }
         }
     }
@@ -87,7 +91,7 @@ class MainActivity : ComponentActivity() {
 
         ContextCompat.registerReceiver(
             this,
-            mBroadcastReceiver,
+            broadcastReceiver,
             intentFilter,
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
@@ -118,7 +122,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        unregisterReceiver(mBroadcastReceiver)
+        unregisterReceiver(broadcastReceiver)
 
         super.onDestroy()
     }
@@ -128,11 +132,8 @@ class MainActivity : ComponentActivity() {
      */
     private fun requestUsbPermission() {
         val usbManager = getSystemService(USB_SERVICE) as UsbManager
-        val list = usbManager.deviceList ?: run {
-            disconnected()
-            return
-        }
 
+        val list = usbManager.deviceList
         if (list.size != 1) {
             disconnected()
             return
@@ -161,7 +162,7 @@ class MainActivity : ComponentActivity() {
 
     /**
      * Attempts to connect to the ECU once USB permission is granted.
-     * @see mBroadcastReceiver
+     * @see broadcastReceiver
      */
     private fun connect(device: UsbDevice?) {
         viewModel.connect(device)
