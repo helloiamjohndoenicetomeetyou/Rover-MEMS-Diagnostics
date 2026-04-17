@@ -28,7 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppState
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsState
 
 @Composable
 fun LiveDataItem(label: String, value: String) {
@@ -81,7 +81,7 @@ fun LiveDataItem2(label: String, value: String, subLabel: String, subValue: Stri
 data class LiveDataModel(val label: String, val value: String)
 
 @Composable
-fun LiveDataSection(uiState: RmdAppState) {
+fun LiveDataSection(uiState: RoverMemsDiagnosticsState) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -168,7 +168,7 @@ fun LiveDataSection(uiState: RmdAppState) {
 }
 
 @Composable
-fun LiveDataExperimentalSection(uiState: RmdAppState) {
+fun LiveDataExperimentalSection(uiState: RoverMemsDiagnosticsState) {
     val list = listOf(
         LiveDataModel(
             label = "Cooler Switch",

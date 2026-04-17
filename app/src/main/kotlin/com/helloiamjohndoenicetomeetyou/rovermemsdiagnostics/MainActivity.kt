@@ -35,8 +35,8 @@ import androidx.core.content.IntentCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdApp
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnostics
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsViewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.NotSupportedDialog
 import kotlinx.coroutines.launch
 
@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
             BuildConfig.APPLICATION_ID + "USB_PERMISSION"
     }
 
-    private val viewModel: RmdAppViewModel by viewModels()
+    private val viewModel: RoverMemsDiagnosticsViewModel by viewModels()
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                RmdApp(viewModel = viewModel)
+                RoverMemsDiagnostics(viewModel = viewModel)
 
                 if (!isUsbHostSupported) {
                     NotSupportedDialog(

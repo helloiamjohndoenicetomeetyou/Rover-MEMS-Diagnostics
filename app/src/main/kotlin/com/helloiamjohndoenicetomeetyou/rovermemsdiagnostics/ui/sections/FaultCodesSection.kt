@@ -34,7 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppState
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +68,11 @@ fun ClearFaultCodesDialog(onConfirm: () -> Unit, onDismissRequest: () -> Unit) {
 data class FaultCodeModel(val label: String, val value: String)
 
 @Composable
-fun FaultCodesSection(uiState: RmdAppState, isConnected: Boolean, onShowDialog: () -> Unit) {
+fun FaultCodesSection(
+    uiState: RoverMemsDiagnosticsState,
+    isConnected: Boolean,
+    onShowDialog: () -> Unit
+) {
     val faultCodeList = listOf(
         FaultCodeModel(
             label = "Crankshaft Angle Sensor",

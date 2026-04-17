@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
-fun RmdApp(viewModel: RmdAppViewModel = viewModel()) {
+fun RoverMemsDiagnostics(viewModel: RoverMemsDiagnosticsViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()

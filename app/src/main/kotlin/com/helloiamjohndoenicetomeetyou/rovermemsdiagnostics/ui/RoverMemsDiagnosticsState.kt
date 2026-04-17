@@ -15,7 +15,7 @@
 
 package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui
 
-data class RmdAppState(
+data class RoverMemsDiagnosticsState(
     val engineSpeed: String = "-",
     val idleSpeedDeviation: String = "-",
     val idleSwitch: String = "-",

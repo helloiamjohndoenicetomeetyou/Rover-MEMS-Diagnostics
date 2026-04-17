@@ -35,7 +35,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class RmdAppViewModel(application: Application) : AndroidViewModel(application = application) {
+class RoverMemsDiagnosticsViewModel(application: Application) :
+    AndroidViewModel(application = application) {
     private val usbManager: UsbManager =
         application.getSystemService(Context.USB_SERVICE) as UsbManager
 
@@ -55,9 +56,9 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         }
     )
 
-    private val _uiState = MutableStateFlow(RmdAppState())
+    private val _uiState = MutableStateFlow(RoverMemsDiagnosticsState())
 
-    val uiState: StateFlow<RmdAppState> = _uiState.asStateFlow()
+    val uiState: StateFlow<RoverMemsDiagnosticsState> = _uiState.asStateFlow()
 
     private val _uiEvent = Channel<String>()
 
@@ -83,7 +84,7 @@ class RmdAppViewModel(application: Application) : AndroidViewModel(application =
         }
 
         if (newStatus) {
-            _uiState.value = RmdAppState()
+            _uiState.value = RoverMemsDiagnosticsState()
         }
     }
 

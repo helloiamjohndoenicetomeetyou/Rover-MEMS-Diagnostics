@@ -35,12 +35,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppState
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RmdAppViewModel
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsState
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ResetTuningDialog(viewModel: RmdAppViewModel, onDismissRequest: () -> Unit) {
+fun ResetTuningDialog(viewModel: RoverMemsDiagnosticsViewModel, onDismissRequest: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
@@ -89,7 +89,7 @@ enum class TuningButtonId {
 
 @Composable
 fun TuningSection(
-    uiState: RmdAppState,
+    uiState: RoverMemsDiagnosticsState,
     isConnected: Boolean,
     onTuningButtonClick: (TuningButtonId) -> Unit,
     onShowDialog: () -> Unit,
