@@ -32,14 +32,12 @@ android {
         targetSdk = 36
 
         versionCode = 1
-        versionName = "2026.04.09.20.33"
+        versionName = "2026.04.18.16.48"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = true
-
-            proguardFile("proguard-android-optimize.txt")
         }
     }
 
