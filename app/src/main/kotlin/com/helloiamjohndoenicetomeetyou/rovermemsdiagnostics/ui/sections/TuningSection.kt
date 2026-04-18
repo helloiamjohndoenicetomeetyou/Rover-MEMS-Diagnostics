@@ -32,6 +32,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
@@ -50,19 +51,19 @@ fun ResetTuningDialog(viewModel: RoverMemsDiagnosticsViewModel, onDismissRequest
                     onDismissRequest()
                 }
             ) {
-                Text(text = "Yes")
+                Text(text = stringResource(R.string.yes))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text(text = "No")
+                Text(text = stringResource(R.string.no))
             }
         },
         title = {
-            Text(text = "Reset Tuning")
+            Text(text = stringResource(R.string.reset_tuning))
         },
         text = {
-            Text(text = "Are you sure you want to reset tuning?")
+            Text(text = stringResource(R.string.reset_tuning_message))
         }
     )
 }
@@ -96,29 +97,29 @@ fun TuningSection(
 ) {
     val tuningList = listOf(
         TuningModel(
-            label = "Ignition Timing",
-            subLabel = "Range: 0x74 \u2013 0x8C\nDefault: 0x80",
+            label = stringResource(R.string.ignition_timing),
+            subLabel = stringResource(R.string.ignition_timing_range),
             value = uiState.tuningIgnitionTiming,
             incrementButtonId = TuningButtonId.INCREMENT_IGNITION_TIMING,
             decrementButtonId = TuningButtonId.DECREMENT_IGNITION_TIMING
         ),
         TuningModel(
-            label = "Idle Speed",
-            subLabel = "Range: 0x78 \u2013 0x88\nDefault: 0x80",
+            label = stringResource(R.string.idle_speed),
+            subLabel = stringResource(R.string.idle_speed_range),
             value = uiState.tuningIdleSpeed,
             incrementButtonId = TuningButtonId.INCREMENT_IDLE_SPEED,
             decrementButtonId = TuningButtonId.DECREMENT_IDLE_SPEED
         ),
         TuningModel(
-            label = "Idle Decay",
-            subLabel = "Range: 0x0A \u2013 0x3C\nDefault: 0x23",
+            label = stringResource(R.string.idle_decay),
+            subLabel = stringResource(R.string.idle_decay_range),
             value = uiState.tuningIdleDecay,
             incrementButtonId = TuningButtonId.INCREMENT_IDLE_DECAY,
             decrementButtonId = TuningButtonId.DECREMENT_IDLE_DECAY
         ),
         TuningModel(
-            label = "Fuel Trim",
-            subLabel = "Range: 0x00 \u2013 0xFE\nDefault: 0x80",
+            label = stringResource(R.string.fuel_trim),
+            subLabel = stringResource(R.string.fuel_trim_range),
             value = uiState.tuningFuelTrim,
             incrementButtonId = TuningButtonId.INCREMENT_FUEL_TRIM,
             decrementButtonId = TuningButtonId.DECREMENT_FUEL_TRIM
@@ -161,7 +162,7 @@ fun TuningSection(
                 enabled = isConnected
             ) {
                 Text(
-                    text = "\u2193", // Down Arrow
+                    text = stringResource(R.string.arrow_down),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -174,7 +175,7 @@ fun TuningSection(
                 enabled = isConnected
             ) {
                 Text(
-                    text = "\u2191", // Up Arrow
+                    text = stringResource(R.string.arrow_up),
                     style = MaterialTheme.typography.titleMedium
                 )
             }
@@ -195,7 +196,7 @@ fun TuningSection(
         Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
 
         Text(
-            text = "Reset",
+            text = stringResource(R.string.reset),
             style = MaterialTheme.typography.titleMedium
         )
     }

@@ -83,11 +83,7 @@ class DataPacket(
     val tunedValue: String = ""
 ) {
     companion object {
-        const val IDLE = "Idle"
-
-        const val NOT_IDLE = "Not Idle"
-
-        const val OPENED = "Opened"
+        const val OPEN = "Open"
 
         const val CLOSED = "Closed"
 
@@ -98,9 +94,5 @@ class DataPacket(
         const val FAULT = "Fault"
 
         const val NO_FAULT = "No Fault"
-
-        const val NEUTRAL = "Neutral"
-
-        const val GEARED = "Geared"
     }
 }

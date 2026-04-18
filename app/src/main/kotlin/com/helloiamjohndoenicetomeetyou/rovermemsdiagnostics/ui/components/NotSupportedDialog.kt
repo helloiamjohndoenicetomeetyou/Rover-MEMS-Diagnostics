@@ -19,6 +19,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 
 @Composable
 fun NotSupportedDialog(onConfirm: () -> Unit) {
@@ -28,14 +30,14 @@ fun NotSupportedDialog(onConfirm: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
-                Text(text = "Close")
+                Text(text = stringResource(R.string.close))
             }
         },
         title = {
-            Text(text = "Not Supported")
+            Text(text = stringResource(R.string.not_supported))
         },
         text = {
-            Text(text = "Your device does not support USB Host Mode, which is required for this application.")
+            Text(text = stringResource(R.string.not_supported_message))
         }
     )
 }

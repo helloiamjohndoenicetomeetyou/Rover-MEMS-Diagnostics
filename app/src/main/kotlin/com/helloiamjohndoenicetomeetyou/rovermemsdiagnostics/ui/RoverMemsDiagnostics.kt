@@ -139,7 +139,7 @@ fun RoverMemsDiagnostics(
                         DropdownMenuItem(
                             text = {
                                 Text(
-                                    text = "About",
+                                    text = stringResource(R.string.about),
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             },
@@ -161,21 +161,21 @@ fun RoverMemsDiagnostics(
         ) {
             // Live Data Section
             SectionTitle(
-                title = "Live Data",
+                title = stringResource(R.string.live_data),
                 onTitleClick = scrollToSection
             )
             LiveDataSection(uiState = uiState)
 
             // Live Data (Experimental) Section
             SectionTitle(
-                title = "Live Data (Experimental)",
+                title = stringResource(R.string.live_data_experimental),
                 onTitleClick = scrollToSection
             )
             LiveDataExperimentalSection(uiState = uiState)
 
             //Fault Codes Section
             SectionTitle(
-                title = "Fault Codes",
+                title = stringResource(R.string.fault_codes),
                 onTitleClick = scrollToSection
             )
             FaultCodesSection(
@@ -188,7 +188,7 @@ fun RoverMemsDiagnostics(
 
             // Tuning Section
             SectionTitle(
-                title = "Tuning",
+                title = stringResource(R.string.tuning),
                 onTitleClick = scrollToSection
             )
             TuningSection(

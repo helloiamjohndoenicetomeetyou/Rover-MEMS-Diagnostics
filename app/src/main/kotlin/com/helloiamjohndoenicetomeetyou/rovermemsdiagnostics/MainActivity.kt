@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
                 ACTION_USB_PERMISSION -> {
                     synchronized(this@MainActivity) {
                         if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                            showSnackBar("USB Permission granted.")
+                            showSnackBar(getString(R.string.usb_permission_granted))
 
                             val device = IntentCompat.getParcelableExtra(
                                 intent,
@@ -67,7 +67,8 @@ class MainActivity : ComponentActivity() {
                             )
                             connect(device)
                         } else {
-                            showSnackBar("USB Permission denied.")
+                            showSnackBar(getString(R.string.usb_permission_denied))
+                            disconnected()
                             return
                         }
                     }

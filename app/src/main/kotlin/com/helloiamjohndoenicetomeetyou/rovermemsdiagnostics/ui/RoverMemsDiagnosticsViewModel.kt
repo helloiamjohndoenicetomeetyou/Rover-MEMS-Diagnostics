@@ -20,7 +20,9 @@ import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.application
 import androidx.lifecycle.viewModelScope
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.CommunicationManager
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
@@ -106,19 +108,19 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
             it.copy(
                 engineSpeed = data.engineSpeed,
                 idleSpeedDeviation = data.idleSpeedDeviation,
-                idleSwitch = data.idleSwitch,
+                idleSwitch = getStatusText(data.idleSwitch),
                 throttlePotentiometerVoltage = data.throttlePotentiometerVoltage,
                 idleAirControlMotorPosition = data.idleAirControlMotorPosition,
                 manifoldAbsolutePressure = data.manifoldAbsolutePressure,
                 batteryVoltage = data.batteryVoltage,
                 waterTemperature = data.waterTemperature,
                 intakeAirTemperature = data.intakeAirTemperature,
-                neutralSwitch = data.neutralSwitch,
+                neutralSwitch = getStatusText(data.neutralSwitch),
                 oxygenSensorVoltage = data.oxygenSensorVoltage,
-                fuelTrimLoopOperation = data.fuelTrimLoopOperation,
+                fuelTrimLoopOperation = getStatusText(data.fuelTrimLoopOperation),
                 shortTermFuelTrim = data.shortTermFuelTrim,
 
-                coolerSwitch = data.coolerSwitch,
+                coolerSwitch = getStatusText(data.coolerSwitch),
                 idleSetPoint = data.idleSetPoint,
                 hotIdlePosition = data.hotIdlePosition,
                 idleBasePosition = data.idleBasePosition,
@@ -126,11 +128,11 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
                 ignitionTiming = data.ignitionTiming,
                 ignitionCoilDwellTime = data.ignitionCoilDwellTime,
 
-                crankshaftAngleSensorFault = data.crankshaftAngleSensorFault,
-                throttlePotentiometerFault = data.throttlePotentiometerFault,
-                manifoldAbsolutePressureSensorFault = data.manifoldAbsolutePressureSensorFault,
-                waterTemperatureSensorFault = data.waterTemperatureSensorFault,
-                intakeAirTemperatureSensorFault = data.intakeAirTemperatureSensorFault
+                crankshaftAngleSensorFault = getStatusText(data.crankshaftAngleSensorFault),
+                throttlePotentiometerFault = getStatusText(data.throttlePotentiometerFault),
+                manifoldAbsolutePressureSensorFault = getStatusText(data.manifoldAbsolutePressureSensorFault),
+                waterTemperatureSensorFault = getStatusText(data.waterTemperatureSensorFault),
+                intakeAirTemperatureSensorFault = getStatusText(data.intakeAirTemperatureSensorFault)
             )
         }
     }
@@ -141,7 +143,7 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
 
     fun onFaultCodesCleared(result: Boolean) {
         if (result) {
-            showSnackbar("Fault codes cleared successfully.")
+            showSnackbar(application.getString(R.string.cleared_fault_codes))
         }
     }
 
@@ -174,16 +176,16 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
 
                 TuningButtonId.RESET_TUNING ->
                     it.copy(
-                        tuningIgnitionTiming = "-",
-                        tuningIdleSpeed = "-",
-                        tuningIdleDecay = "-",
-                        tuningFuelTrim = "-"
+                        tuningIgnitionTiming = application.getString(R.string.hyphen),
+                        tuningIdleSpeed = application.getString(R.string.hyphen),
+                        tuningIdleDecay = application.getString(R.string.hyphen),
+                        tuningFuelTrim = application.getString(R.string.hyphen)
                     )
             }
         }
 
         if (data.tuningButtonId == TuningButtonId.RESET_TUNING) {
-            showSnackbar("Resetting tuning successfully completed.")
+            showSnackbar(application.getString(R.string.reset_tuning_successfully))
         }
     }
 
@@ -195,5 +197,15 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
         viewModelScope.launch {
             _uiEvent.send(message)
         }
+    }
+
+    private fun getStatusText(status: String): String = when (status) {
+        DataPacket.OPEN -> application.getString(R.string.status_open)
+        DataPacket.CLOSED -> application.getString(R.string.status_closed)
+        DataPacket.ON -> application.getString(R.string.status_on)
+        DataPacket.OFF -> application.getString(R.string.status_off)
+        DataPacket.FAULT -> application.getString(R.string.status_fault)
+        DataPacket.NO_FAULT -> application.getString(R.string.status_no_fault)
+        else -> status
     }
 }

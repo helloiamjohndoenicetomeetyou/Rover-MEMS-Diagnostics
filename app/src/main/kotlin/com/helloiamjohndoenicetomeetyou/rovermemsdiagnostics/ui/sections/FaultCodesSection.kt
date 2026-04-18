@@ -31,6 +31,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
@@ -48,19 +49,19 @@ fun ClearFaultCodesDialog(onConfirm: () -> Unit, onDismissRequest: () -> Unit) {
                     onDismissRequest()
                 }
             ) {
-                Text(text = "Yes")
+                Text(text = stringResource(R.string.yes))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismissRequest) {
-                Text(text = "No")
+                Text(text = stringResource(R.string.no))
             }
         },
         title = {
-            Text(text = "Clear Fault Codes")
+            Text(text = stringResource(R.string.clear_fault_codes))
         },
         text = {
-            Text(text = "Are you sure you want to clear fault codes?")
+            Text(text = stringResource(R.string.clear_fault_codes_message))
         }
     )
 }
@@ -75,23 +76,23 @@ fun FaultCodesSection(
 ) {
     val faultCodeList = listOf(
         FaultCodeModel(
-            label = "Crankshaft Angle Sensor",
+            label = stringResource(R.string.crankshaft_angle_sensor),
             value = uiState.crankshaftAngleSensorFault
         ),
         FaultCodeModel(
-            label = "Throttle Potentiometer Circuit",
+            label = stringResource(R.string.throttle_potentiometer),
             value = uiState.throttlePotentiometerFault
         ),
         FaultCodeModel(
-            label = "Manifold Absolute Pressure Sensor",
+            label = stringResource(R.string.manifold_absolute_pressure_sensor),
             value = uiState.manifoldAbsolutePressureSensorFault
         ),
         FaultCodeModel(
-            label = "Water Temperature Sensor",
+            label = stringResource(R.string.water_temperature_sensor),
             value = uiState.waterTemperatureSensorFault
         ),
         FaultCodeModel(
-            label = "Intake Air Temperature Sensor",
+            label = stringResource(R.string.intake_air_temperature_sensor),
             value = uiState.intakeAirTemperatureSensorFault
         )
     )
@@ -130,7 +131,7 @@ fun FaultCodesSection(
         Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
 
         Text(
-            text = "Clear",
+            text = stringResource(R.string.clear),
             style = MaterialTheme.typography.titleMedium
         )
     }

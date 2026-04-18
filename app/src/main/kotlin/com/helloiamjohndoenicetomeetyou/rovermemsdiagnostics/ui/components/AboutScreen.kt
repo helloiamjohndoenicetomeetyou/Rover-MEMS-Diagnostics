@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
@@ -46,7 +47,12 @@ fun AboutScreen(navController: NavHostController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "About")
+                    Text(
+                        text = stringResource(
+                            R.string.about_application,
+                            stringResource(R.string.application_name)
+                        )
+                    )
                 },
                 navigationIcon = {
                     IconButton(
@@ -72,16 +78,19 @@ fun AboutScreen(navController: NavHostController) {
                 title = stringResource(R.string.application_version),
                 description = BuildConfig.VERSION_NAME
             )
-            Section(title = "Supported ECU Version", description = "MEMS 1.6")
             Section(
-                title = "More Information",
-                description = buildAnnotatedString {
+                title = stringResource(R.string.supported_ecu),
+                description = stringResource(R.string.supported_ecu_list)
+            )
+            Section(
+                title = buildAnnotatedString {
                     withLink(
                         LinkAnnotation.Url(
-                            url = "https://helloiamjohndoenicetomeetyou.github.io/Rover-MEMS-Diagnostics/"
+                            url = stringResource(R.string.github_pages_url),
+                            styles = TextLinkStyles()
                         )
                     ) {
-                        append("GitHub Pages")
+                        append(stringResource(R.string.more_information))
                     }
                 }
             )
@@ -102,13 +111,8 @@ private fun Section(title: String, description: String) {
 }
 
 @Composable
-private fun Section(title: String, description: AnnotatedString) {
+private fun Section(title: AnnotatedString) {
     Spacer(modifier = Modifier.size(16.dp))
 
     Text(text = title, style = MaterialTheme.typography.bodyLarge)
-    Text(
-        text = description,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
 }

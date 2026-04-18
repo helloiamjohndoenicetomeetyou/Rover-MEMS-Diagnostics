@@ -18,14 +18,10 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.prot
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.CLOSED
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.FAULT
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.GEARED
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.IDLE
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.NEUTRAL
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.NOT_IDLE
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.NO_FAULT
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.OFF
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.ON
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.OPENED
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket.Companion.OPEN
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.DeviceDriver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.utilities.toHexStringRmd
@@ -179,10 +175,10 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
             throttlePotentiometerVoltage = "%.2f".format(ints80[9] * 0.02),
 
             // ints80: 10 0x0A: Idle Switch
-            idleSwitch = if (ints80[10] == 0) IDLE else NOT_IDLE,
+            idleSwitch = if (ints80[10] == 0) ON else OFF,
 
             // ints80: 11 0x0B: Neutral Switch
-            neutralSwitch = if (ints80[11] == 0) NEUTRAL else GEARED,
+            neutralSwitch = if (ints80[11] == 0) ON else OFF,
 
             // ints80: 12 0x0C: Cooler Switch
             coolerSwitch = if (ints80[12] == 0) ON else OFF,
@@ -264,7 +260,7 @@ class Mems16Protocol(private val deviceDriver: DeviceDriver) : MemsProtocol {
             // ints7D: 9 0x09: Oxygen Sensor Status?
 
             // ints7D: 10 0x10: Fuel Trim Loop Operation
-            fuelTrimLoopOperation = if (ints7D[10] == 0) OPENED else CLOSED,
+            fuelTrimLoopOperation = if (ints7D[10] == 0) OPEN else CLOSED,
 
             // ints7D: 11 0x11: Long Term Fuel Trim?
 

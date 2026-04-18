@@ -15,5 +15,71 @@
 -->
 <resources>
     <string name="application_name" translatable="false">Rover MEMS Diagnostics</string>
+    <string name="about">About</string>
+    <string name="about_application">About %1$s</string>
     <string name="application_version">Application Version</string>
+    <string name="air">Air - &#176;C</string>
+    <string name="arrow_down" translatable="false">&#8595;</string>
+    <string name="arrow_up" translatable="false">&#8593;</string>
+    <string name="battery">Battery - V</string>
+    <string name="clear">Clear</string>
+    <string name="clear_fault_codes">Clear Fault Codes</string>
+    <string name="clear_fault_codes_message">Are you sure you want to clear fault codes?</string>
+    <string name="cleared_fault_codes">Fault codes cleared successfully.</string>
+    <string name="close">Close</string>
+    <string name="cooler_switch">Cooler Switch</string>
+    <string name="crankshaft_angle_sensor">Crankshaft Angle Sensor</string>
+    <string name="engine_speed">Engine Speed - RPM</string>
+    <string name="fault_codes">Fault Codes</string>
+    <string name="ft_loop">FT Loop</string>
+    <string name="fuel_trim">Fuel Trim</string>
+    <string name="fuel_trim_range">Range: 0x00 &#8211; 0xFE\nDefault: 0x80</string>
+    <string name="github_pages_url" translatable="false">https://helloiamjohndoenicetomeetyou.github.io/Rover-MEMS-Diagnostics/</string>
+    <string name="hot_idle_position">Hot Idle Position</string>
+    <string name="hyphen" translatable="false">-</string>
+    <string name="iac">IAC (Step)</string>
+    <string name="idle_base_position">Idle Base Position</string>
+    <string name="idle_decay">Idle Decay</string>
+    <string name="idle_decay_range">Range: 0x0A &#8211; 0x3C\nDefault: 0x23</string>
+    <string name="idle_set_point">Idle Set Point</string>
+    <string name="idle_speed">Idle Speed</string>
+    <string name="idle_speed_range">Range: 0x78 &#8211; 0x88\nDefault: 0x80</string>
+    <string name="idle_switch">Idle Switch</string>
+    <string name="ignition_coil_dwell_time">Ignition Coil Dwell Time - ms</string>
+    <string name="ignition_timing">Ignition Timing</string>
+    <string name="ignition_timing_offset">Ignition Timing Offset</string>
+    <string name="ignition_timing_range">Range: 0x74 &#8211; 0x8C\nDefault: 0x80</string>
+    <string name="intake_air_temperature_sensor">Intake Air Temperature Sensor</string>
+    <string name="lambda">Lambda (O2) - mV</string>
+    <string name="live_data">Live Data</string>
+    <string name="live_data_experimental">Live Data (Experimental)</string>
+    <string name="manifold_absolute_pressure_sensor">Manifold Absolute Pressure Sensor</string>
+    <string name="map" translatable="false">MAP - kPa</string>
+    <string name="more_information">More Information</string>
+    <string name="neutral_switch">Neutral Switch (AT)</string>
+    <string name="no">No</string>
+    <string name="not_supported">Not Supported</string>
+    <string name="not_supported_message">Your device does not support USB Host Mode, which is required for this application.</string>
+    <string name="plus_minus" translatable="false">&#177;</string>
+    <string name="reset">Rest</string>
+    <string name="reset_tuning">Reset Tuning</string>
+    <string name="reset_tuning_message">Are you sure you want to reset tuning?</string>
+    <string name="reset_tuning_successfully">Tuning reset successfully.</string>
+    <string name="stft">STFT - %</string>
+    <string name="supported_ecu">Supported ECU</string>
+    <string name="supported_ecu_list" translatable="false">MEMS 1.6</string>
+    <string name="status_closed">Closed</string>
+    <string name="status_fault">Fault</string>
+    <string name="status_no_fault">No Fault</string>
+    <string name="status_off">OFF</string>
+    <string name="status_on">ON</string>
+    <string name="status_open">Open</string>
+    <string name="throttle">Throttle - V</string>
+    <string name="throttle_potentiometer">Throttle Potentiometer Circuit</string>
+    <string name="tuning">Tuning</string>
+    <string name="usb_permission_denied">USB Permission denied.</string>
+    <string name="usb_permission_granted">USB Permission granted.</string>
+    <string name="water">Water - &#176;C</string>
+    <string name="water_temperature_sensor">Water Temperature Sensor</string>
+    <string name="yes">Yes</string>
 </resources>

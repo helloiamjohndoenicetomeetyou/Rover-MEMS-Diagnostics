@@ -26,8 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsState
 
 @Composable
@@ -88,16 +90,16 @@ fun LiveDataSection(uiState: RoverMemsDiagnosticsState) {
     ) {
         Box(modifier = Modifier.weight(1f)) {
             LiveDataItem2(
-                label = "Engine Speed - RPM",
+                label = stringResource(R.string.engine_speed),
                 value = uiState.engineSpeed,
-                subLabel = "\u00B1",
+                subLabel = stringResource(R.string.plus_minus),
                 subValue = uiState.idleSpeedDeviation
             )
         }
 
         Box(modifier = Modifier.weight(1f)) {
             LiveDataItem2(
-                label = "Idle Switch",
+                label = stringResource(R.string.idle_switch),
                 value = uiState.idleSwitch,
                 subLabel = "",
                 subValue = ""
@@ -107,43 +109,43 @@ fun LiveDataSection(uiState: RoverMemsDiagnosticsState) {
 
     val livedataList = listOf(
         LiveDataModel(
-            label = "Throttle - V",
+            label = stringResource(R.string.throttle),
             value = uiState.throttlePotentiometerVoltage
         ),
         LiveDataModel(
-            label = "IAC (Step)",
+            label = stringResource(R.string.iac),
             value = uiState.idleAirControlMotorPosition
         ),
         LiveDataModel(
-            label = "MAP - kPa",
+            label = stringResource(R.string.map),
             value = uiState.manifoldAbsolutePressure
         ),
         LiveDataModel(
-            label = "Battery - V",
+            label = stringResource(R.string.battery),
             value = uiState.batteryVoltage
         ),
         LiveDataModel(
-            label = "Water - \u00B0C",
+            label = stringResource(R.string.water),
             value = uiState.waterTemperature
         ),
         LiveDataModel(
-            label = "Air - \u00B0C",
+            label = stringResource(R.string.air),
             value = uiState.intakeAirTemperature
         ),
         LiveDataModel(
-            label = "Neutral Switch (AT)",
+            label = stringResource(R.string.neutral_switch),
             value = uiState.neutralSwitch
         ),
         LiveDataModel(
-            label = "Lambda (O2) - mV",
+            label = stringResource(R.string.lambda),
             value = uiState.oxygenSensorVoltage
         ),
         LiveDataModel(
-            label = "FT Loop",
+            label = stringResource(R.string.ft_loop),
             value = uiState.fuelTrimLoopOperation
         ),
         LiveDataModel(
-            label = "Short FT - %",
+            label = stringResource(R.string.stft),
             value = uiState.shortTermFuelTrim
         )
     )
@@ -171,31 +173,31 @@ fun LiveDataSection(uiState: RoverMemsDiagnosticsState) {
 fun LiveDataExperimentalSection(uiState: RoverMemsDiagnosticsState) {
     val list = listOf(
         LiveDataModel(
-            label = "Cooler Switch",
+            label = stringResource(R.string.cooler_switch),
             value = uiState.coolerSwitch
         ),
         LiveDataModel(
-            label = "Idle Set Point",
+            label = stringResource(R.string.idle_set_point),
             value = uiState.idleSetPoint
         ),
         LiveDataModel(
-            label = "Hot Idle Position",
+            label = stringResource(R.string.hot_idle_position),
             value = uiState.hotIdlePosition
         ),
         LiveDataModel(
-            label = "Idle Base Position",
+            label = stringResource(R.string.idle_base_position),
             value = uiState.idleBasePosition
         ),
         LiveDataModel(
-            label = "Ignition Timing Offset",
+            label = stringResource(R.string.ignition_timing_offset),
             value = uiState.ignitionTimingOffset
         ),
         LiveDataModel(
-            label = "Ignition Timing",
+            label = stringResource(R.string.ignition_timing),
             value = uiState.ignitionTiming
         ),
         LiveDataModel(
-            label = "Ignition Coil Dwell Time - ms",
+            label = stringResource(R.string.ignition_coil_dwell_time),
             value = uiState.ignitionCoilDwellTime
         )
     )
