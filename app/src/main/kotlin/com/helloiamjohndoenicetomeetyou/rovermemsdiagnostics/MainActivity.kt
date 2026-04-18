@@ -35,7 +35,7 @@ import androidx.core.content.IntentCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnostics
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsNavigationGraph
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.RoverMemsDiagnosticsViewModel
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.NotSupportedDialog
 import kotlinx.coroutines.launch
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MaterialTheme {
-                RoverMemsDiagnostics(viewModel = viewModel)
+                RoverMemsDiagnosticsNavigationGraph(viewModel = viewModel)
 
                 if (!isUsbHostSupported) {
                     NotSupportedDialog(

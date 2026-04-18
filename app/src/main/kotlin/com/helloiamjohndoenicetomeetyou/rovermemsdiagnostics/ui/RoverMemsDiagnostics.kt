@@ -40,12 +40,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.components.AboutDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.FaultCodesSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataExperimentalSection
@@ -57,8 +56,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun RoverMemsDiagnostics(viewModel: RoverMemsDiagnosticsViewModel = viewModel()) {
+fun RoverMemsDiagnostics(
+    navController: NavController,
+    viewModel: RoverMemsDiagnosticsViewModel = viewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -86,10 +87,6 @@ fun RoverMemsDiagnostics(viewModel: RoverMemsDiagnosticsViewModel = viewModel())
     }
 
     val showResetTuningDialog = remember {
-        mutableStateOf(false)
-    }
-
-    val showAboutDialog = remember {
         mutableStateOf(false)
     }
 
@@ -147,8 +144,8 @@ fun RoverMemsDiagnostics(viewModel: RoverMemsDiagnosticsViewModel = viewModel())
                                 )
                             },
                             onClick = {
-                                showAboutDialog.value = true
                                 expanded.value = false
+                                navController.navigate(AboutRoute)
                             }
                         )
                     }
@@ -223,14 +220,6 @@ fun RoverMemsDiagnostics(viewModel: RoverMemsDiagnosticsViewModel = viewModel())
             viewModel = viewModel,
             onDismissRequest = {
                 showResetTuningDialog.value = false
-            }
-        )
-    }
-
-    if (showAboutDialog.value) {
-        AboutDialog(
-            onDismissRequest = {
-                showAboutDialog.value = false
             }
         )
     }
