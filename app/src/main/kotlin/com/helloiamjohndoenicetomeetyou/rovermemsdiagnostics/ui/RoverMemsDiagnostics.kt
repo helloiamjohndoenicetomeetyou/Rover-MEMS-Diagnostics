@@ -28,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -46,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ConnectionSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.FaultCodesSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataExperimentalSection
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.LiveDataSection
@@ -106,19 +106,6 @@ fun RoverMemsDiagnostics(
                     Text(text = stringResource(R.string.application_name))
                 },
                 actions = {
-                    Switch(
-                        checked = isConnected,
-                        onCheckedChange = {
-                            viewModel.setIsConnected(it)
-
-                            if (it) {
-                                viewModel.requestConnect()
-                            } else {
-                                viewModel.disconnect()
-                            }
-                        }
-                    )
-
                     IconButton(
                         onClick = {
                             expanded.value = true
@@ -159,6 +146,21 @@ fun RoverMemsDiagnostics(
                 .padding(horizontal = 16.dp)
                 .verticalScroll(scrollState)
         ) {
+            // Connection Section
+            SectionTitle(title = stringResource(R.string.connection))
+            ConnectionSection(
+                isConnected = isConnected,
+                onCheckedChange = { checked, ecuVersion ->
+                    viewModel.setIsConnected(checked)
+
+                    if (checked) {
+                        viewModel.requestConnect(ecuVersion)
+                    } else {
+                        viewModel.disconnect()
+                    }
+                }
+            )
+
             // Live Data Section
             SectionTitle(
                 title = stringResource(R.string.live_data),

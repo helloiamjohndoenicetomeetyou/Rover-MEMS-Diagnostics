@@ -18,8 +18,9 @@ package com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.driver.FtdiDriver
-import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.Mems16Protocol
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.EcuVersion
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocol
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.MemsProtocolFactory
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.transceiver.UsbTransceiver
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import java.util.concurrent.Executors
@@ -71,7 +72,7 @@ class CommunicationManager(
 
     private val communicationMutex = Mutex()
 
-    private fun connectInternal(device: UsbDevice?) {
+    private fun connectInternal(ecuVersion: EcuVersion, device: UsbDevice?) {
         coroutineScope.launch {
             try {
                 disconnectInternal()
@@ -87,7 +88,7 @@ class CommunicationManager(
                     throw Exception("Failed to initialize driver.")
                 }
 
-                val protocol = Mems16Protocol(driver)
+                val protocol = MemsProtocolFactory.createProtocol(ecuVersion, driver)
                 if (!protocol.initialize()) {
                     protocol.close()
                     throw Exception("Failed to initialize protocol.")
@@ -105,8 +106,8 @@ class CommunicationManager(
         }
     }
 
-    fun connect(device: UsbDevice?) {
-        connectInternal(device)
+    fun connect(ecuVersion: EcuVersion, device: UsbDevice?) {
+        connectInternal(ecuVersion, device)
     }
 
     private fun requestLiveData() {

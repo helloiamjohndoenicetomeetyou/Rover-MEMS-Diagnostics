@@ -24,8 +24,10 @@
     <string name="clear_fault_codes_message">本当に消去しますか ?</string>
     <string name="cleared_fault_codes">消去しました</string>
     <string name="close">閉じる</string>
+    <string name="connection">接続</string>
     <string name="cooler_switch">クーラースイッチ</string>
     <string name="crankshaft_angle_sensor">クランク角センサ</string>
+    <string name="ecu_version">ECU バージョン</string>
     <string name="engine_speed">エンジン回転数 - RPM</string>
     <string name="fault_codes">フォルトコード</string>
     <string name="ft_loop">燃料補正ループ</string>

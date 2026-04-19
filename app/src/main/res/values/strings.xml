@@ -27,8 +27,10 @@
     <string name="clear_fault_codes_message">Are you sure you want to clear fault codes?</string>
     <string name="cleared_fault_codes">Fault codes cleared successfully.</string>
     <string name="close">Close</string>
+    <string name="connection">Connection</string>
     <string name="cooler_switch">Cooler Switch</string>
     <string name="crankshaft_angle_sensor">Crankshaft Angle Sensor</string>
+    <string name="ecu_version">ECU Version</string>
     <string name="engine_speed">Engine Speed - RPM</string>
     <string name="fault_codes">Fault Codes</string>
     <string name="ft_loop">FT Loop</string>

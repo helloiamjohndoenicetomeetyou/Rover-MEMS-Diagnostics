@@ -25,6 +25,7 @@ import androidx.lifecycle.viewModelScope
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.CommunicationManager
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.DataPacket
+import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.communication.protocol.EcuVersion
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.TuningButtonId
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -74,6 +75,8 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
 
     val requestConnectEvent: SharedFlow<Unit> = _requestConnectEvent.asSharedFlow()
 
+    private var ecuVersion = EcuVersion.MEMS_16
+
     override fun onCleared() {
         super.onCleared()
 
@@ -90,14 +93,16 @@ class RoverMemsDiagnosticsViewModel(application: Application) :
         }
     }
 
-    fun requestConnect() {
+    fun requestConnect(ecuVersion: EcuVersion) {
+        this.ecuVersion = ecuVersion
+
         viewModelScope.launch {
             _requestConnectEvent.emit(Unit)
         }
     }
 
     fun connect(device: UsbDevice?) {
-        communicationManager.connect(device)
+        communicationManager.connect(ecuVersion, device)
     }
 
     /**
