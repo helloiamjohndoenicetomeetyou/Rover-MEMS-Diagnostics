@@ -29,6 +29,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.unit.dp
 
+private var isCalled = false
+
 @Composable
 fun SectionTitle(title: String, onTitleClick: (Int) -> Unit = {}) {
     val yOffset = remember {
@@ -41,7 +43,11 @@ fun SectionTitle(title: String, onTitleClick: (Int) -> Unit = {}) {
                 yOffset.intValue = coordinates.positionInParent().y.toInt()
             }
     ) {
-        Spacer(modifier = Modifier.size(40.dp))
+        if (isCalled) {
+            Spacer(modifier = Modifier.size(40.dp))
+        } else {
+            isCalled = true
+        }
 
         Text(
             text = title,
