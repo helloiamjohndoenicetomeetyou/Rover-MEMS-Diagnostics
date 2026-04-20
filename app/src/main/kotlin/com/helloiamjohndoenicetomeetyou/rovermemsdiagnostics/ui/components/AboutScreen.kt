@@ -47,12 +47,7 @@ fun AboutScreen(navController: NavHostController) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = stringResource(
-                            R.string.about_application,
-                            stringResource(R.string.application_name)
-                        )
-                    )
+                    Text(text = stringResource(R.string.about))
                 },
                 navigationIcon = {
                     IconButton(

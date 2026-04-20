@@ -16,7 +16,6 @@
 <resources>
     <string name="application_version">アプリケーションバージョン</string>
     <string name="about">概要</string>
-    <string name="about_application">%1$s について</string>
     <string name="air">吸気温 - &#176;C</string>
     <string name="battery">バッテリ - V</string>
     <string name="clear">消去</string>

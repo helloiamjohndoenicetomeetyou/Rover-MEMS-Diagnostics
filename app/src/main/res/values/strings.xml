@@ -16,7 +16,6 @@
 <resources>
     <string name="application_name" translatable="false">Rover MEMS Diagnostics</string>
     <string name="about">About</string>
-    <string name="about_application">About %1$s</string>
     <string name="application_version">Application Version</string>
     <string name="air">Air - &#176;C</string>
     <string name="arrow_down" translatable="false">&#8595;</string>
