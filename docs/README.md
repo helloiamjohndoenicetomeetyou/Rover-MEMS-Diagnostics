@@ -5,34 +5,41 @@ An Android application for Rover MEMS (Modular Engine Management System) diagnos
 [🖥️GitHub Repository](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics)
 
 ## Screenshots
-<img src="./1.png" width="300">
-<img src="./2.png" width="300">
-<img src="./3.png" width="300">
+
+<img src="./1.png" width="300" alt="Rover MEMS Diagnostics Android Application Screen">
+<img src="./2.png" width="300" alt="Rover MEMS Diagnostics Android Application Screen">
+<img src="./3.png" width="300" alt="Rover MEMS Diagnostics Android Application Screen">
 
 ## Download
-Version 2026.04.18.16.48
 
-[📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases/download/2026.04.18.16.48/2026.04.18.16.48.apk)
+Latest Version 2026.04.18.16.48
+
+[📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases)
 
 ## System Requirements
+
 * Android Version: Android 8.0 (Oreo) or Later (API Level 26 or Higher)
 * Connectivity: USB OTG Support
 
 ## Supported ECU Version
+
 * MEMS 1.6 (Commonly found in Classic Mini SPI)
 
 ## Features
+
 * Live Data
 * Fault Codes
 * Tuning
 
 ## Donations
-If you find this application useful, donations via PayPal are greatly appreciated to support
-further development.
+
+If you find this application useful, donations via PayPal are greatly appreciated to support further
+development.
 
 [🍵PayPal Me](https://paypal.me/helloiamjohndoe)
 
 ## Privacy Policy
+
 ### Collection and Use of Personal Information
 
 This application does not collect, store, or transmit any personally identifiable information
@@ -74,5 +81,5 @@ please contact us at:
 
 Copyright (C) 2025 helloiamjohndoenicetomeetyou
 
-This application is licensed under the GNU GENERAL PUBLIC LICENSE -- see the [LICENSE](../LICENSE) file
-for details.
+This application is licensed under the GNU GENERAL PUBLIC LICENSE -- see the [LICENSE](../LICENSE)
+file for details.
