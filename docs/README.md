@@ -12,10 +12,6 @@ An Android application for Rover MEMS (Modular Engine Management System) diagnos
 
 ## Download
 
-Latest Version 2026.04.18.16.48
-
-[📦️Download APK](https://github.com/helloiamjohndoenicetomeetyou/Rover-MEMS-Diagnostics/releases)
-
 ## System Requirements
 
 * Android Version: Android 8.0 (Oreo) or Later (API Level 26 or Higher)
