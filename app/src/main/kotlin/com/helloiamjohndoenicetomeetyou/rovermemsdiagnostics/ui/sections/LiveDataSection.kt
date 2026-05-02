@@ -44,6 +44,7 @@ fun LiveDataItem(label: String, value: String) {
             text = value,
             style = MaterialTheme.typography.displayMedium
         )
+
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium
@@ -63,16 +64,19 @@ fun LiveDataItem2(label: String, value: String, subLabel: String, subValue: Stri
             text = value,
             style = MaterialTheme.typography.displayMedium
         )
+
         Row {
             Text(
                 text = subLabel,
                 style = MaterialTheme.typography.titleMedium
             )
+
             Text(
                 text = subValue,
                 style = MaterialTheme.typography.titleMedium
             )
         }
+
         Text(
             text = label,
             style = MaterialTheme.typography.titleMedium

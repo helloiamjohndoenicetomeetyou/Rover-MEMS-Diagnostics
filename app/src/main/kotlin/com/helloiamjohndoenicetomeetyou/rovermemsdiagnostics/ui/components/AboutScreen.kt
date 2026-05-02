@@ -73,10 +73,12 @@ fun AboutScreen(navController: NavHostController) {
                 title = stringResource(R.string.application_version),
                 description = BuildConfig.VERSION_NAME
             )
+
             Section(
                 title = stringResource(R.string.supported_ecu),
                 description = stringResource(R.string.supported_ecu_list)
             )
+
             Section(
                 title = buildAnnotatedString {
                     withLink(
@@ -98,6 +100,7 @@ private fun Section(title: String, description: String) {
     Spacer(modifier = Modifier.size(16.dp))
 
     Text(text = title, style = MaterialTheme.typography.bodyLarge)
+
     Text(
         text = description,
         style = MaterialTheme.typography.bodyMedium,

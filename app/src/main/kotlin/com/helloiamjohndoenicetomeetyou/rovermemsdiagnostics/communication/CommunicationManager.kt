@@ -43,19 +43,6 @@ class CommunicationManager(
     private val onTuningPerformed: (data: DataPacket) -> Unit
 ) {
     companion object {
-        // private const val LIB_USB_ENDPOINT_IN: Int = 0x80
-
-        // private const val FTDI_SIO_SET_BREAK_ON = 1 shl 14
-
-        // private const val FTDI_SIO_SET_BREAK_OFF = 0 shl 14
-
-        /*
-        private const val REQUEST_TYPE_IN: Int =
-            UsbConstants.USB_TYPE_VENDOR or
-                    LIB_USB_RECIPIENT_DEVICE or
-                    LIB_USB_ENDPOINT_IN
-         */
-
         private const val DELAY_REQUEST_DATA = 500L
     }
 
