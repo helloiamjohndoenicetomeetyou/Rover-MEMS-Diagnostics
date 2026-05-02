@@ -41,8 +41,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ClearFaultCodesDialog
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.ui.sections.ConnectionSection
@@ -57,8 +55,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoverMemsDiagnostics(
-    navController: NavController,
-    viewModel: RoverMemsDiagnosticsViewModel = viewModel()
+    viewModel: RoverMemsDiagnosticsViewModel,
+    onDropdownMenuItemClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -132,7 +130,7 @@ fun RoverMemsDiagnostics(
                             },
                             onClick = {
                                 expanded.value = false
-                                navController.navigate(AboutRoute)
+                                onDropdownMenuItemClick()
                             }
                         )
                     }

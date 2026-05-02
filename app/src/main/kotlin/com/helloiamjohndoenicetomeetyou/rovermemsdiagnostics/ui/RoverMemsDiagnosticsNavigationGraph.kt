@@ -35,9 +35,10 @@ private const val DURATION_MILLIS = 400
 
 @Composable
 fun RoverMemsDiagnosticsNavigationGraph(
-    navController: NavHostController = rememberNavController(),
     viewModel: RoverMemsDiagnosticsViewModel
 ) {
+    val navController: NavHostController = rememberNavController()
+
     NavHost(navController = navController, startDestination = HomeRoute) {
         composable<HomeRoute>(
             exitTransition = {
@@ -53,7 +54,12 @@ fun RoverMemsDiagnosticsNavigationGraph(
                 )
             }
         ) {
-            RoverMemsDiagnostics(navController = navController, viewModel = viewModel)
+            RoverMemsDiagnostics(
+                viewModel = viewModel,
+                onDropdownMenuItemClick = {
+                    navController.navigate(AboutRoute)
+                }
+            )
         }
 
         composable<AboutRoute>(
@@ -70,7 +76,11 @@ fun RoverMemsDiagnosticsNavigationGraph(
                 )
             }
         ) {
-            AboutScreen(navController = navController)
+            AboutScreen(
+                onNavigationIconClick = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

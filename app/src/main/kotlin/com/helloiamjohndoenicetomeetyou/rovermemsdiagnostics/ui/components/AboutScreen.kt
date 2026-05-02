@@ -36,13 +36,12 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.BuildConfig
 import com.helloiamjohndoenicetomeetyou.rovermemsdiagnostics.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AboutScreen(navController: NavHostController) {
+fun AboutScreen(onNavigationIconClick: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -52,7 +51,7 @@ fun AboutScreen(navController: NavHostController) {
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            navController.popBackStack()
+                            onNavigationIconClick()
                         }
                     ) {
                         Icon(
